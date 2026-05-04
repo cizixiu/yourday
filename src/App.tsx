@@ -22,6 +22,7 @@ const getHash = (str: string) => {
 type ThemeType = 'classic' | 'bold' | 'dark' | 'warm' | 'technical' | 'poster' | 'traditional' | 'editorial' | 'vintage' | 'zen' | 'crimson';
 type DateFontType = 'playfair' | 'bebas' | 'cormorant' | 'abril' | 'mono' | 'satisfy' | 'space' | 'outfit';
 type QuoteFontType = 'serif' | 'sans' | 'kaiti' | 'calligraphy' | 'handwrite' | 'display' | 'modern' | 'mono';
+type TearAnimationType = 'classic' | 'slide-left' | 'float' | 'zoom';
 
 export default function App() {
   const [theme, setTheme] = useState<ThemeType>('bold');
@@ -52,6 +53,7 @@ export default function App() {
   const [isManualMode, setIsManualMode] = useState(false);
   const [showSuitable, setShowSuitable] = useState(true);
   const [showAvoid, setShowAvoid] = useState(true);
+  const [tearAnimation, setTearAnimation] = useState<TearAnimationType>('classic');
   const [isTearing, setIsTearing] = useState(false);
 
   const cardBgs = [
@@ -70,7 +72,7 @@ export default function App() {
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'theme' | 'font' | 'quote' | 'scheme' | 'background' | 'card' | 'border' | 'setting'>('theme');
+  const [activeTab, setActiveTab] = useState<'theme' | 'font' | 'quote' | 'scheme' | 'background' | 'card' | 'border' | 'personal' | 'calendar' | 'visibility' | 'system'>('theme');
   const [randomSeed, setRandomSeed] = useState(0);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
@@ -166,11 +168,11 @@ export default function App() {
     const savedCustomCardBg = localStorage.getItem('calendar-custom-card-bg');
     if (savedCustomCardBg) setCustomCardBgColor(savedCustomCardBg);
 
-    const savedCustomQuote = localStorage.getItem('calendar-custom-quote');
-    if (savedCustomQuote) setCustomQuoteText(savedCustomQuote);
+    const savedCustomQuoteText = localStorage.getItem('calendar-custom-quote-text');
+    if (savedCustomQuoteText) setCustomQuoteText(savedCustomQuoteText);
 
-    const savedCustomSource = localStorage.getItem('calendar-custom-source');
-    if (savedCustomSource) setCustomQuoteSource(savedCustomSource);
+    const savedCustomQuoteSource = localStorage.getItem('calendar-custom-quote-source');
+    if (savedCustomQuoteSource) setCustomQuoteSource(savedCustomQuoteSource);
 
     const savedFooterText = localStorage.getItem('calendar-footer-text');
     if (savedFooterText) setFooterText(savedFooterText);
@@ -183,6 +185,9 @@ export default function App() {
 
     const savedShowAvoid = localStorage.getItem('calendar-show-avoid');
     if (savedShowAvoid !== null) setShowAvoid(savedShowAvoid === 'true');
+
+    const savedTearAnimation = localStorage.getItem('calendar-tear-animation') as TearAnimationType;
+    if (savedTearAnimation) setTearAnimation(savedTearAnimation);
     
     // If manual mode, try to load last valid date
     if (savedManualMode) {
@@ -218,6 +223,16 @@ export default function App() {
   const handleToggleAvoid = (val: boolean) => {
     setShowAvoid(val);
     localStorage.setItem('calendar-show-avoid', String(val));
+  };
+
+  const handleCustomQuoteChange = (val: string) => {
+    setCustomQuoteText(val);
+    localStorage.setItem('calendar-custom-quote-text', val);
+  };
+
+  const handleCustomQuoteSourceChange = (val: string) => {
+    setCustomQuoteSource(val);
+    localStorage.setItem('calendar-custom-quote-source', val);
   };
 
   const handleTear = () => {
@@ -299,18 +314,6 @@ export default function App() {
     }
     setFooterText(slicedText);
     localStorage.setItem('calendar-footer-text', slicedText);
-  };
-
-  const handleCustomQuoteChange = (text: string) => {
-    const val = text.slice(0, 300);
-    setCustomQuoteText(val);
-    localStorage.setItem('calendar-custom-quote', val);
-  };
-
-  const handleCustomSourceChange = (text: string) => {
-    const val = text.slice(0, 50);
-    setCustomQuoteSource(val);
-    localStorage.setItem('calendar-custom-source', val);
   };
 
   const handleCustomAppBgChange = (color: string) => {
@@ -420,6 +423,7 @@ export default function App() {
     setIsManualMode(false);
     setShowSuitable(true);
     setShowAvoid(true);
+    setTearAnimation('classic');
     setHasShadow(true);
     setFooterText('Your Day');
     
@@ -455,6 +459,7 @@ export default function App() {
       'calendar-manual-mode',
       'calendar-show-suitable',
       'calendar-show-avoid',
+      'calendar-tear-animation',
       'calendar-last-date'
     ];
     overrideKeys.forEach(key => localStorage.removeItem(key));
@@ -525,8 +530,11 @@ export default function App() {
   }, [currentDate, theme, randomSeed, customQuoteText, customQuoteSource]);
 
   const handleRandomQuote = () => {
-    const newSeed = Math.floor(Math.random() * 1000000);
-    setRandomSeed(newSeed);
+    // Pick a truly random quote from QUOTES
+    const randomIndex = Math.floor(Math.random() * QUOTES.length);
+    const q = QUOTES[randomIndex];
+    handleCustomQuoteChange(q.text);
+    handleCustomQuoteSourceChange(q.author);
   };
 
   const handleRandomStyle = () => {
@@ -952,22 +960,60 @@ export default function App() {
               scale: 1,
               transition: { type: 'spring', damping: 20, stiffness: 100 }
             }}
-            exit={{ 
-              opacity: [1, 1, 0],
-              y: [0, 50, 1500], 
-              rotateX: [0, 45, 90],
-              rotateY: [0, -10, -20],
-              rotateZ: [0, -5, -15],
-              skewX: [0, -5, -20],
-              filter: ['blur(0px)', 'blur(2px)', 'blur(8px)'],
-              scale: [1, 1.05, 0.8],
-              transformOrigin: 'top center',
-              transition: { 
-                duration: 2.2, 
-                times: [0, 0.8, 1],
-                ease: [0.45, 0.05, 0.55, 0.95] // Custom slow-to-fast curve
+            exit={(() => {
+              switch (tearAnimation) {
+                case 'slide-left':
+                  return {
+                    opacity: [1, 1, 0],
+                    x: [0, -100, -1500],
+                    y: [0, -20, 100],
+                    rotateZ: [0, -15, -45],
+                    rotateX: [0, 5, 20],
+                    filter: ['blur(0px)', 'blur(2px)', 'blur(10px)'],
+                    scale: [1, 1.02, 0.9],
+                    transformOrigin: 'top right',
+                    transition: { duration: 1.8, times: [0, 0.4, 1], ease: [0.4, 0, 0.2, 1] }
+                  };
+                case 'float':
+                  return {
+                    opacity: [1, 0.8, 0],
+                    y: [0, -100, -300],
+                    x: [0, 50, 100],
+                    rotateZ: [0, 10, 25],
+                    rotateY: [0, 20, 45],
+                    scale: [1, 1.1, 1.2],
+                    filter: ['blur(0px)', 'blur(4px)', 'blur(12px)'],
+                    transition: { duration: 2.5, ease: "easeOut" }
+                  };
+                case 'zoom':
+                  return {
+                    opacity: [1, 1, 0],
+                    scale: [1, 0.5, 0],
+                    rotateZ: [0, 180, 720],
+                    rotateX: [0, 45, 90],
+                    y: [0, 100, 500],
+                    filter: ['blur(0px)', 'blur(4px)', 'blur(20px)'],
+                    transition: { duration: 1.5, times: [0, 0.5, 1], ease: "backIn" }
+                  };
+                default: // classic
+                  return { 
+                    opacity: [1, 1, 0],
+                    y: [0, 50, 1500], 
+                    rotateX: [0, 45, 90],
+                    rotateY: [0, -10, -20],
+                    rotateZ: [0, -5, -15],
+                    skewX: [0, -5, -20],
+                    filter: ['blur(0px)', 'blur(2px)', 'blur(8px)'],
+                    scale: [1, 1.05, 0.8],
+                    transformOrigin: 'top center',
+                    transition: { 
+                      duration: 2.2, 
+                      times: [0, 0.8, 1],
+                      ease: [0.45, 0.05, 0.55, 0.95]
+                    }
+                  };
               }
-            }}
+            })()}
             drag={isManualMode && (() => {
               const today = new Date();
               today.setHours(0, 0, 0, 0);
@@ -1681,8 +1727,26 @@ export default function App() {
                       金句
                     </button>
                     <button 
-                      onClick={() => setActiveTab('setting')}
-                      className={`text-[11px] py-1.5 rounded-xl transition-all ${activeTab === 'setting' ? tabActiveClass : 'opacity-40'}`}
+                      onClick={() => setActiveTab('calendar')}
+                      className={`text-[11px] py-1.5 rounded-xl transition-all ${activeTab === 'calendar' ? tabActiveClass : 'opacity-40'}`}
+                    >
+                      日历
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('visibility')}
+                      className={`text-[11px] py-1.5 rounded-xl transition-all ${activeTab === 'visibility' ? tabActiveClass : 'opacity-40'}`}
+                    >
+                      显隐
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('personal')}
+                      className={`text-[11px] py-1.5 rounded-xl transition-all ${activeTab === 'personal' ? tabActiveClass : 'opacity-40'}`}
+                    >
+                      个性
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('system')}
+                      className={`text-[11px] py-1.5 rounded-xl transition-all ${activeTab === 'system' ? tabActiveClass : 'opacity-40'}`}
                     >
                       设置
                     </button>
@@ -1690,8 +1754,8 @@ export default function App() {
 
                                     {/* Theme List */}
                   {activeTab === 'theme' && (
-                    <div className="flex flex-col gap-5 pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1 pt-2 pb-4">
+                    <div className="flex flex-col gap-5 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <div className="grid grid-cols-2 gap-2 max-h-[520px] overflow-y-auto pr-1 pb-4">
                         {themes.map((t) => (
                           <button
                             key={t.id}
@@ -1711,8 +1775,8 @@ export default function App() {
 
                   {/* Scheme List */}
                   {activeTab === 'scheme' && (
-                    <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-1 pb-4">
-                      <div className="grid grid-cols-6 gap-3 gap-y-5 px-1 pt-3">
+                    <div className="flex flex-col gap-4 pt-3 max-h-[300px] overflow-y-auto pr-1 pb-4">
+                      <div className="grid grid-cols-6 gap-3 gap-y-5 px-1">
                         {colorSchemes.map((s) => (
                           <button
                             key={s.id}
@@ -1749,8 +1813,8 @@ export default function App() {
 
                   {/* Background List */}
                   {activeTab === 'background' && (
-                    <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-1 pb-4">
-                      <div className="grid grid-cols-6 gap-3 gap-y-5 px-1 pt-3">
+                    <div className="flex flex-col gap-4 pt-3 max-h-[300px] overflow-y-auto pr-1 pb-4">
+                      <div className="grid grid-cols-6 gap-3 gap-y-5 px-1">
                         {backgrounds.map((b) => (
                           <button
                             key={b.id}
@@ -1787,9 +1851,9 @@ export default function App() {
                   )}
 {/* Card Background Tab */}
                    {activeTab === 'card' && (
-                     <div className="flex flex-col gap-4 max-h-[350px] overflow-y-auto pr-1 pb-4">
+                     <div className="flex flex-col gap-4 pt-3 max-h-[450px] overflow-y-auto pr-1 pb-4">
                        {/* 纸张纹理选择 */}
-                       <div className="px-1 pt-3">
+                       <div className="">
                          <div className="text-[10px] font-bold opacity-40 uppercase tracking-wider mb-2.5 flex items-center gap-2">
                            <Layers className="w-3 h-3" />
                            纸张纹理
@@ -1898,8 +1962,8 @@ export default function App() {
 
                    {/* Border Tab */}
                    {activeTab === 'border' && (
-                     <div className="flex flex-col gap-4 max-h-[350px] overflow-y-auto pr-1 pb-4">
-                        <div className="grid grid-cols-6 gap-3 gap-y-5 px-1 pt-3">
+                     <div className="flex flex-col gap-4 pt-3 max-h-[450px] overflow-y-auto pr-1 pb-4">
+                        <div className="grid grid-cols-6 gap-3 gap-y-5 px-1">
                           {['#E5E7EB', '#D1D5DB', '#9CA3AF', '#4B5563', '#1F2937', '#000000', '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6'].map(c => (
                             <button
                               key={c}
@@ -1966,7 +2030,7 @@ export default function App() {
 
                   {/* Font List */}
                   {activeTab === 'font' && (
-                    <div className="flex flex-col gap-5 pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="flex flex-col gap-5 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                       {/* Typography Section */}
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 px-1">
@@ -2056,25 +2120,7 @@ export default function App() {
 
                   {/* Quote Font List */}
                   {activeTab === 'quote' && (
-                    <div className="flex flex-col gap-3 pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      {/* Random Quote Button */}
-                      <button 
-                        onClick={handleRandomQuote}
-                        className={`flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all ${
-                          isDarkBg 
-                            ? 'bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20' 
-                            : 'bg-rose-50 border-rose-100 hover:bg-white'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <RefreshCw className={`w-3 h-3 ${isDarkBg ? 'text-rose-400' : 'text-rose-600'}`} />
-                          <span className={`text-[10px] font-bold uppercase tracking-widest ${isDarkBg ? 'text-rose-300' : 'text-rose-600'}`}>随机切换金句</span>
-                        </div>
-                        <div className="px-2 py-0.5 rounded-full bg-rose-500/10 text-[9px] font-bold text-rose-500">
-                          RANDOM
-                        </div>
-                      </button>
-
+                    <div className="flex flex-col gap-3 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                       {/* Sync Switch */}
                       <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl border ${isDarkBg ? 'bg-white/5 border-white/5' : 'bg-black/5 border-transparent'}`}>
                         <div className="flex items-center gap-2">
@@ -2172,11 +2218,10 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Settings Tab */}
-                  {activeTab === 'setting' && (
-                    <div className="flex flex-col gap-6 p-3 pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
-
-                      <div className="space-y-4 pr-3">
+                  {/* Calendar Tab */}
+                  {activeTab === 'calendar' && (
+                    <div className="flex flex-col gap-6 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <div className="space-y-4">
                         {/* Manual Mode Toggle */}
                         <div className="flex items-center justify-between p-3 rounded-2xl bg-black/5 hover:bg-black/10 transition-colors">
                           <div className="flex flex-col gap-0.5">
@@ -2194,6 +2239,44 @@ export default function App() {
                           </button>
                         </div>
 
+                        {/* Tear Animation Selection */}
+                        <div className="space-y-3 p-3 rounded-2xl bg-black/5">
+                          <div className="flex flex-col gap-0.5 px-0.5">
+                            <span className="text-[13px] font-bold">撕页动画效果</span>
+                            <span className="text-[10px] opacity-40 leading-tight">选择你喜欢的撕页过渡动画</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                             {[
+                              { id: 'classic', label: '经典' },
+                              { id: 'slide-left', label: '滑出' },
+                              { id: 'float', label: '飘动' },
+                              { id: 'zoom', label: '旋转' },
+                            ].map((anim) => (
+                              <button
+                                key={anim.id}
+                                onClick={() => {
+                                  setTearAnimation(anim.id as TearAnimationType);
+                                  localStorage.setItem('calendar-tear-animation', anim.id);
+                                }}
+                                className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all border ${
+                                  tearAnimation === anim.id 
+                                    ? 'bg-rose-600 text-white border-transparent shadow-sm' 
+                                    : 'bg-white/50 hover:bg-white border-black/5 opacity-60 hover:opacity-100'
+                                }`}
+                              >
+                                {anim.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Visibility Tab */}
+                  {activeTab === 'visibility' && (
+                    <div className="flex flex-col gap-6 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <div className="space-y-4">
                         <div className="flex items-center justify-between p-3 rounded-2xl bg-black/5 hover:bg-black/10 transition-colors">
                           <div className="flex flex-col gap-0.5">
                             <span className="text-[13px] font-bold">显示“宜”</span>
@@ -2225,6 +2308,31 @@ export default function App() {
                             />
                           </button>
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Personal Tab (Footer Text & Custom Quote) */}
+                  {activeTab === 'personal' && (
+                    <div className="flex flex-col gap-6 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <div className="space-y-4">
+                        {/* Random Quote Button */}
+                        <button 
+                          onClick={handleRandomQuote}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all ${
+                            isDarkBg 
+                              ? 'bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20' 
+                              : 'bg-rose-50 border-rose-100 hover:bg-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <RefreshCw className={`w-3 h-3 ${isDarkBg ? 'text-rose-400' : 'text-rose-600'}`} />
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isDarkBg ? 'text-rose-300' : 'text-rose-600'}`}>随机切换金句</span>
+                          </div>
+                          <div className="px-2 py-0.5 rounded-full bg-rose-500/10 text-[9px] font-bold text-rose-500">
+                            RANDOM
+                          </div>
+                        </button>
 
                         {/* Footer Text */}
                         <div className="space-y-2">
@@ -2238,8 +2346,39 @@ export default function App() {
                           />
                         </div>
 
+                        {/* Custom Quote Text */}
+                        <div className="space-y-2 pt-2 border-t border-black/5">
+                          <div className="px-1 text-[10px] font-bold opacity-40 uppercase tracking-widest">自定义金句内容</div>
+                          <textarea 
+                            value={customQuoteText || calendarData.quote.text}
+                            onChange={(e) => handleCustomQuoteChange(e.target.value)}
+                            className={`w-full h-24 px-4 py-3 rounded-2xl border bg-black/5 focus:outline-none focus:ring-2 focus:ring-rose-600/30 transition-all text-sm font-bold resize-none ${isDarkBg ? 'border-white/10' : 'border-gray-100'}`}
+                            placeholder="让今天更有力量的文字..."
+                          />
+                        </div>
+
+                        {/* Custom Quote Source */}
+                        <div className="space-y-2">
+                          <div className="px-1 text-[10px] font-bold opacity-40 uppercase tracking-widest">金句署名</div>
+                          <input 
+                            type="text" 
+                            value={customQuoteSource || calendarData.quote.author}
+                            onChange={(e) => handleCustomQuoteSourceChange(e.target.value)}
+                            className={`w-full px-4 py-3 rounded-2xl border bg-black/5 focus:outline-none focus:ring-2 focus:ring-rose-600/30 transition-all text-sm font-bold ${isDarkBg ? 'border-white/10' : 'border-gray-100'}`}
+                            placeholder="署名，例如：苏轼、尼采..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* System Tab (Reset) */}
+                  {activeTab === 'system' && (
+                    <div className="flex flex-col gap-6 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <div className="space-y-4">
                         {/* Reset Button */}
-                        <div className="pt-4 border-t border-black/5">
+                        <div className="pt-2">
+                          <div className="px-1 mb-4 text-[10px] font-bold opacity-40 uppercase tracking-widest">系统管理</div>
                           <button 
                             onClick={handleResetDefaults}
                             className={`w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all group relative overflow-hidden ${
