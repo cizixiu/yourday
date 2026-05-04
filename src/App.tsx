@@ -7,8 +7,9 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Solar, Lunar } from 'lunar-javascript';
 import { QUOTES, ADVICE_POOL } from './data/quotes';
-import { Palette, X, Download, RefreshCw, RotateCcw, Type, Baseline, Layers, Check, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { Palette, X, Download, RefreshCw, RotateCcw, Type, Baseline, Layers, Check, ChevronLeft, ChevronRight, Calendar, Pipette } from 'lucide-react';
 import { toCanvas } from 'html-to-image';
+import { ColorPicker } from './components/ColorPicker';
 
 const getHash = (str: string) => {
   let hash = 0;
@@ -19,14 +20,14 @@ const getHash = (str: string) => {
   return Math.abs(hash);
 };
 
-type ThemeType = 'classic' | 'bold' | 'dark' | 'warm' | 'technical' | 'poster' | 'traditional' | 'editorial' | 'vintage' | 'zen' | 'crimson';
-type DateFontType = 'playfair' | 'bebas' | 'cormorant' | 'abril' | 'mono' | 'satisfy' | 'space' | 'outfit';
+type ThemeType = 'classic' | 'bold' | 'dark' | 'warm' | 'technical' | 'poster' | 'traditional' | 'editorial' | 'vintage' | 'zen' | 'crimson' | 'vanguard';
+type DateFontType = 'bungee' | 'bebas' | 'cormorant' | 'abril' | 'mono' | 'satisfy' | 'space' | 'outfit';
 type QuoteFontType = 'serif' | 'sans' | 'kaiti' | 'calligraphy' | 'handwrite' | 'display' | 'modern' | 'mono';
 type TearAnimationType = 'classic' | 'slide-left' | 'float' | 'zoom';
 
 export default function App() {
   const [theme, setTheme] = useState<ThemeType>('bold');
-  const [dateFont, setDateFont] = useState<DateFontType>('playfair');
+  const [dateFont, setDateFont] = useState<DateFontType>('space');
   const [quoteFont, setQuoteFont] = useState<QuoteFontType>('serif');
   const [scheme, setScheme] = useState<string>('original');
   const [bgId, setBgId] = useState<string>('default');
@@ -400,7 +401,7 @@ export default function App() {
   const handleResetDefaults = () => {
     // Reset fundamental themes
     setTheme('bold');
-    setDateFont('playfair');
+    setDateFont('space');
     setQuoteFont('serif');
 
     // Reset Overrides to Theme Defaults (undefined/empty)
@@ -508,7 +509,7 @@ export default function App() {
     const dayYi = lunar.getDayYi();
     const dayJi = lunar.getDayJi();
 
-    const isModern = ['bold', 'dark', 'technical', 'poster', 'editorial', 'crimson'].includes(theme);
+    const isModern = ['bold', 'dark', 'technical', 'poster', 'editorial', 'crimson', 'vanguard'].includes(theme);
 
     return {
       year,
@@ -518,9 +519,7 @@ export default function App() {
       day,
       weekday: isModern ? `${weekDays[weekIdx]} ${weekDaysEn[weekIdx].toUpperCase()}` : weekDays[weekIdx],
       lunarDate: theme === 'classic' ? `农历${lunarMonth}月${lunarDay}${festivals.length > 0 ? '·' + festivals[0] : solarTerm ? '·' + solarTerm : ''}` : `农历${lunarMonth}月${lunarDay}`,
-      lunarGanzhi: theme === 'classic' || theme === 'traditional' 
-        ? `${lunarYearGanzhi}年·${lunarMonthGanzhi}月·${lunarDayGanzhi}日` 
-        : `${lunarYearGanzhi}年${lunarMonthGanzhi}月${lunarDayGanzhi}日`,
+      lunarGanzhi: `${lunarYearGanzhi}年${lunarMonthGanzhi}月${lunarDayGanzhi}日`,
       festivals: festivals.join(' '),
       solarTerm: solarTerm || '',
       quote,
@@ -539,7 +538,7 @@ export default function App() {
 
   const handleRandomStyle = () => {
     // 1. Random Theme
-    const themeList: ThemeType[] = ['classic', 'bold', 'dark', 'warm', 'technical', 'poster', 'traditional', 'editorial', 'vintage', 'zen', 'crimson'];
+    const themeList: ThemeType[] = ['classic', 'bold', 'dark', 'warm', 'technical', 'poster', 'traditional', 'editorial', 'vintage', 'zen', 'crimson', 'vanguard'];
     const newTheme = themeList[Math.floor(Math.random() * themeList.length)];
     setTheme(newTheme);
 
@@ -588,17 +587,18 @@ export default function App() {
     { id: 'editorial', name: '社论', class: 'bg-white border-black' },
     { id: 'vintage', name: '复古', class: 'bg-[#E9C46A] border-[#264653]' },
     { id: 'zen', name: '禅意', class: 'bg-[#F1F8E9] border-[#558B2F]' },
-    { id: 'crimson', name: '赤金', class: 'bg-white border-[#800020]' },
+    { id: 'crimson', name: '赤金', class: 'bg-white border-[#e3b245]' },
+    { id: 'vanguard', name: '前卫', class: 'bg-black border-[#ff3d00]' },
   ];
 
   const fonts: { id: DateFontType; name: string; value: string }[] = [
-    { id: 'playfair', name: 'Playfair', value: 'var(--font-date-playfair)' },
+    { id: 'space', name: '艺术设计', value: 'var(--font-date-space)' },
+    { id: 'bungee', name: '摩登像素', value: 'var(--font-date-bungee)' },
     { id: 'bebas', name: 'Bebas', value: 'var(--font-date-bebas)' },
     { id: 'cormorant', name: 'Cormorant', value: 'var(--font-date-cormorant)' },
     { id: 'abril', name: 'Abril', value: 'var(--font-date-abril)' },
     { id: 'mono', name: 'Typewriter', value: 'var(--font-date-mono)' },
     { id: 'satisfy', name: 'Handwrite', value: 'var(--font-date-satisfy)' },
-    { id: 'space', name: 'Modern', value: 'var(--font-date-space)' },
     { id: 'outfit', name: 'Minimal', value: 'var(--font-date-outfit)' },
   ];
 
@@ -612,6 +612,24 @@ export default function App() {
     { id: 'modern', name: '时尚黄油', value: 'var(--font-quote-modern)' },
     { id: 'mono', name: '极客等宽', value: 'var(--font-quote-mono)' },
   ];
+
+  const getThemeDefaultColor = (t: ThemeType) => {
+    switch (t) {
+      case 'classic': return '#2C3E50';
+      case 'bold': return '#000000';
+      case 'dark': return '#58A6FF';
+      case 'warm': return '#8D6E63';
+      case 'poster': return '#C41E3A';
+      case 'traditional': return '#B03A2E';
+      case 'technical': return '#64FFDA';
+      case 'editorial': return '#000000';
+      case 'vintage': return '#E76F51';
+      case 'zen': return '#8BC34A';
+      case 'crimson': return '#e3b245';
+      case 'vanguard': return '#ff3d00';
+      default: return '#9CA3AF';
+    }
+  };
 
   const colorSchemes = [
     { id: 'original', name: '默认', bg: 'bg-neutral-200' },
@@ -665,6 +683,13 @@ export default function App() {
       dark: { '--bg-page': '#1A1400', '--bg-card': '#2B2100', '--color-text': '#FFF176', '--color-muted': '#FFF59D', '--border-card': '#403100', '--border-accent': '#FFF176' }
     },
     { 
+      id: 'crimson_gold', 
+      name: '赤金', 
+      bg: 'bg-[#e3b245]', 
+      light: { '--bg-page': '#FDF9F0', '--bg-card': '#FFFFFF', '--color-text': '#e3b245', '--color-muted': '#D4AF37', '--border-card': '#F2E8D5', '--border-accent': '#e3b245' },
+      dark: { '--bg-page': '#1A140B', '--bg-card': '#2A2112', '--color-text': '#e3b245', '--color-muted': '#C59A3D', '--border-card': '#3D2F1B', '--border-accent': '#e3b245' }
+    },
+    { 
       id: 'violet', 
       name: '罗兰', 
       bg: 'bg-[#BA68C8]', 
@@ -713,6 +738,20 @@ export default function App() {
       light: { '--bg-page': '#F0F4F7', '--bg-card': '#FFFFFF', '--color-text': '#2C3E50', '--color-muted': '#7F8C8D', '--border-card': '#D6DBDF', '--border-accent': '#2C3E50' },
       dark: { '--bg-page': '#0C1117', '--bg-card': '#161B22', '--color-text': '#8B949E', '--color-muted': '#C9D1D9', '--border-card': '#30363D', '--border-accent': '#58A6FF' }
     },
+    { 
+      id: 'coffee', 
+      name: '咖啡', 
+      bg: 'bg-[#6F4E37]', 
+      light: { '--bg-page': '#FAF3E0', '--bg-card': '#FFFFFF', '--color-text': '#6F4E37', '--color-muted': '#8B5E3C', '--border-card': '#EBD5B3', '--border-accent': '#6F4E37' },
+      dark: { '--bg-page': '#1B1411', '--bg-card': '#2D1E17', '--color-text': '#D2B48C', '--color-muted': '#A68966', '--border-card': '#402D24', '--border-accent': '#D2B48C' }
+    },
+    { 
+      id: 'teal', 
+      name: '清新', 
+      bg: 'bg-[#008080]', 
+      light: { '--bg-page': '#E0F2F1', '--bg-card': '#FFFFFF', '--color-text': '#00695C', '--color-muted': '#00796B', '--border-card': '#B2DFDB', '--border-accent': '#00695C' },
+      dark: { '--bg-page': '#001A1A', '--bg-card': '#002B2B', '--color-text': '#4DB6AC', '--color-muted': '#80CBC4', '--border-card': '#004D40', '--border-accent': '#4DB6AC' }
+    },
   ];
 
   const backgrounds = [
@@ -731,9 +770,14 @@ export default function App() {
     { id: 'cloud', name: '云中', color: '#E8EEF2', preview: 'bg-[#E8EEF2]' },
     { id: 'dust', name: '烟粉', color: '#F4E7E7', preview: 'bg-[#F4E7E7]' },
     { id: 'pine', name: '松针', color: '#DAE2D8', preview: 'bg-[#DAE2D8]' },
+    { id: 'mint', name: '薄荷', color: '#E0F2F1', preview: 'bg-[#E0F2F1]' },
+    { id: 'lavender', name: '薰衣草', color: '#F3E5F5', preview: 'bg-[#F3E5F5]' },
   ];
 
-  const currentFontValue = fonts.find(f => f.id === dateFont)?.value || 'var(--font-serif)';
+  const currentFontValue = (() => {
+    if (theme === 'vanguard' && !dateFont) return 'var(--font-date-outfit)';
+    return fonts.find(f => f.id === dateFont)?.value || 'var(--font-serif)';
+  })();
   const currentQuoteFontValue = quoteFonts.find(f => f.id === quoteFont)?.value || 'var(--font-quote-serif)';
   
   const isThemeDark = ['dark', 'technical'].includes(theme);
@@ -762,6 +806,11 @@ export default function App() {
     } else {
       const currentSchemeData = colorSchemes.find(s => s.id === scheme);
       styles = currentSchemeData ? (isThemeDark ? currentSchemeData.dark : currentSchemeData.light) || {} : {};
+    }
+    
+    // Ensure --color-primary is set if not present but --border-accent is
+    if (!styles['--color-primary'] && styles['--border-accent']) {
+      styles['--color-primary'] = styles['--border-accent'];
     }
     
     // Ensure --border-accent is set if not present but --color-primary is
@@ -919,7 +968,7 @@ export default function App() {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className={`calendar-container w-full max-w-[560px] min-h-[500px] md:aspect-[3/4] border relative p-7 md:p-12 ${dayStyle === 'shadow' ? '' : 'overflow-hidden'} select-none flex flex-col transition-all duration-500 ${hasShadow ? 'shadow-[0_40px_100px_rgba(0,0,0,0.12)]' : 'shadow-none'}`}
+        className={`calendar-container theme-${theme} w-full max-w-[560px] min-h-[500px] md:aspect-[3/4] border relative p-7 md:p-12 ${dayStyle === 'shadow' ? '' : 'overflow-hidden'} select-none flex flex-col transition-all duration-500 ${hasShadow ? 'shadow-[0_40px_100px_rgba(0,0,0,0.12)]' : 'shadow-none'}`}
         id="calendar-container"
         style={{ 
           '--dynamic-font': currentFontValue,
@@ -1039,7 +1088,7 @@ export default function App() {
             {calendarData.monthName}
           </div>
           <div className="text-right flex flex-col items-end gap-3" id="header-advice">
-            {showSuitable && (
+            {showSuitable && theme !== 'vanguard' && (
               <div className="flex flex-col items-end">
                 <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] mb-1">今日宜</span>
                 <div 
@@ -1056,8 +1105,8 @@ export default function App() {
                 </div>
               </div>
             )}
-            {showAvoid && (
-              <div className="flex flex-col items-end">
+            {showAvoid && theme !== 'vanguard' && (
+              <div className="hidden md:flex flex-col items-end">
                 <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] mb-1">今日忌</span>
                 <div 
                   className="text-xs font-bold opacity-60 leading-tight max-w-[140px] flex flex-wrap justify-end gap-x-2 gap-y-0.5 overflow-hidden" 
@@ -1082,11 +1131,11 @@ export default function App() {
             <div className="absolute inset-0 pointer-events-none select-none" id="festival-layer">
               {/* 1. Traditional/Vintage: Red Stamp Style */}
               {(theme === 'traditional' || theme === 'vintage') && (
-                <div className="absolute right-4 top-4 flex flex-col gap-2 z-10">
+                <div className="absolute right-4 top-[1px] flex flex-col gap-2 z-10">
                   {calendarData.festivals && (
-                    <div className="transform rotate-6 flex items-center justify-center">
-                      <div className="border-2 border-red-600/60 text-red-600/70 p-0.5 rounded-sm flex items-center justify-center min-w-[32px] min-h-[32px]">
-                        <div className="border border-red-600/40 px-1 py-1 text-[10px] font-serif font-black leading-tight flex flex-col items-center">
+                    <div className="transform rotate-[21deg] flex items-center justify-center">
+                      <div className="border-2 border-[#ff461f] text-[#ff461f] p-0.5 rounded-sm flex items-center justify-center min-w-[32px] min-h-[32px]">
+                        <div className="border border-[#ff461f] px-1 py-1 text-[10px] font-serif font-black leading-tight flex flex-col items-center">
                           {calendarData.festivals.split(' ')[0].split('').map((char, index) => (
                             <span key={index}>{char}</span>
                           ))}
@@ -1096,7 +1145,7 @@ export default function App() {
                   )}
                   {calendarData.solarTerm && (
                     <div className="transform -rotate-6 flex items-center justify-center self-end -mt-2">
-                      <div className="border border-red-600/40 text-red-600/50 p-0.5 rounded-sm flex items-center justify-center min-w-[28px] min-h-[28px]">
+                      <div className="border border-[#ff461f] text-[#ff461f] p-0.5 rounded-sm flex items-center justify-center min-w-[28px] min-h-[28px]">
                         <div className="px-0.5 py-0.5 text-[8px] font-serif font-bold leading-tight flex flex-col items-center">
                           {calendarData.solarTerm.split('').map((char, index) => (
                             <span key={index}>{char}</span>
@@ -1115,7 +1164,7 @@ export default function App() {
                   style={{ top: '-12px', right: '2px' }}
                 >
                   {calendarData.festivals && (
-                    <div className="bg-[var(--color-primary)] text-[var(--color-bg)] py-1 px-1 flex flex-col items-center gap-0.5">
+                    <div className="bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] py-1 px-1 flex flex-col items-center gap-0.5">
                       <div className="w-[1px] h-1.5 bg-current opacity-30 mb-0.5" />
                       <div className="text-[9px] font-bold [writing-mode:vertical-rl] tracking-[1px] py-1">
                         {calendarData.festivals.split(' ')[0]}
@@ -1141,7 +1190,7 @@ export default function App() {
               {theme === 'poster' && (
                 <div className="absolute left-1 top-10 flex flex-col items-start gap-1 z-10">
                   {calendarData.festivals && (
-                    <div className="bg-[var(--color-primary)] text-[var(--color-bg)] px-2 py-0.5 flex items-center gap-2">
+                    <div className="border border-[var(--color-primary)] text-[var(--color-primary)] px-2 py-0.5 flex items-center gap-2">
                       <div className="text-[9px] font-black uppercase tracking-[2px]">
                         {calendarData.festivals.split(' ')[0]}
                       </div>
@@ -1161,7 +1210,7 @@ export default function App() {
               {(theme === 'technical') && (
                 <div className="absolute top-0 right-1 flex flex-col items-end gap-1 z-10">
                   {calendarData.festivals && (
-                    <div className="flex items-center gap-2 bg-[var(--color-primary)] text-[var(--color-bg)] px-3 py-1 text-[11px] font-black tracking-widest leading-none">
+                    <div className="flex items-center gap-2 border border-[var(--color-primary)] text-[var(--color-primary)] px-3 py-1 text-[11px] font-black tracking-widest leading-none bg-[var(--color-primary)]/5">
                       {calendarData.festivals.split(' ')[0]}
                       <span className="opacity-50 text-[8px]">●</span>
                     </div>
@@ -1174,20 +1223,28 @@ export default function App() {
                   )}
                 </div>
               )}
+              {/* 5. Vanguard: Bold Overlapping Text */}
+              {theme === 'vanguard' && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
+                  <span className="text-[200px] font-black tracking-tighter break-all leading-none text-center text-[var(--color-primary)]">
+                    {calendarData.festivals ? calendarData.festivals.split(' ')[0] : calendarData.solarTerm}
+                  </span>
+                </div>
+              )}
             </div>
           )}
           
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 sidebar sidebar-left" id="side-left">
+          <div className={`absolute left-0 top-1/2 -translate-y-1/2 sidebar sidebar-left ${theme === 'classic' || theme === 'traditional' ? '-mt-[15px]' : ''} ${theme === 'vanguard' ? 'opacity-30 border-none text-[var(--color-primary)]' : ''}`} id="side-left">
             {calendarData.lunarDate}
           </div>
 
           <h1 
-            className={`date-number date-style-${dayStyle}`} 
+            className={`date-number date-style-${dayStyle} ${theme === 'vanguard' ? 'main-date' : ''}`} 
             id="center-date"
             data-date={calendarData.day}
             style={{ 
               fontFamily: currentFontValue, 
-              '--date-font-size': dayFontSize ? `${dayFontSize}px` : undefined,
+              '--date-font-size': dayFontSize ? `${dayFontSize}px` : (theme === 'vanguard' ? '360px' : undefined),
               '--card-border-color': customBorderColor || (scheme === 'original' ? 'rgba(0,0,0,0.1)' : undefined),
               '--card-border-width': borderWidth !== undefined ? `${borderWidth}px` : undefined
             } as React.CSSProperties}
@@ -1210,12 +1267,12 @@ export default function App() {
                 <div className="absolute bottom-2 md:bottom-4 right-0 left-0 text-center animate-in slide-in-from-top-2 duration-500 flex flex-col items-center gap-1">
                   <div className="flex items-center gap-3">
                     {calendarData.festivals && (
-                      <span className={`text-[10px] font-black tracking-[4px] uppercase ${theme === 'bold' ? 'bg-[var(--color-primary)] text-[var(--color-bg)] px-3 py-0.5' : 'opacity-60'}`}>
+                      <span className={`text-[10px] font-black tracking-[4px] uppercase ${theme === 'bold' ? 'text-[var(--color-primary)]' : theme === 'vanguard' ? 'text-[var(--color-primary)] opacity-50' : 'opacity-60'}`}>
                         {calendarData.festivals.split(' ')[0]}
                       </span>
                     )}
                     {calendarData.solarTerm && (
-                      <span className="text-[9px] font-bold tracking-[2px] uppercase opacity-40 border-l border-current/30 pl-3">
+                      <span className={`text-[9px] font-bold tracking-[2px] uppercase opacity-40 border-l border-current/30 pl-3`}>
                         {calendarData.solarTerm}
                       </span>
                     )}
@@ -1225,7 +1282,7 @@ export default function App() {
             </>
           )}
 
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 sidebar sidebar-right" id="side-right">
+          <div className={`absolute right-0 top-1/2 -translate-y-1/2 sidebar sidebar-right ${theme === 'classic' || theme === 'traditional' ? '-mt-[15px]' : ''} ${theme === 'vanguard' ? 'opacity-30 border-none text-[var(--color-primary)]' : ''}`} id="side-right">
             {calendarData.lunarGanzhi}
           </div>
         </section>
@@ -1757,15 +1814,15 @@ export default function App() {
                     <div className="flex flex-col gap-5 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                       <div className="grid grid-cols-2 gap-2 max-h-[520px] overflow-y-auto pr-1 pb-4">
                         {themes.map((t) => (
-                          <button
-                            key={t.id}
-                            onClick={() => handleThemeChange(t.id)}
-                            className={`flex flex-col items-start gap-1 p-3.5 rounded-2xl text-xs transition-all border ${
-                              theme === t.id 
-                                ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-600/20' 
-                                : 'bg-black/5 border-transparent hover:bg-black/10'
-                            }`}
-                          >
+                            <button
+                              key={t.id}
+                              onClick={() => handleThemeChange(t.id)}
+                              className={`flex flex-col items-start gap-1 p-3.5 rounded-2xl text-xs transition-all border ${
+                                theme === t.id 
+                                  ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-600/20' 
+                                  : `${isDarkBg ? 'bg-white/10' : 'bg-black/5'} border-transparent ${isDarkBg ? 'hover:bg-white/20' : 'hover:bg-black/10'}`
+                              }`}
+                            >
                             <span className="text-sm truncate w-full text-left font-medium">{t.name}</span>
                           </button>
                         ))}
@@ -1775,45 +1832,32 @@ export default function App() {
 
                   {/* Scheme List */}
                   {activeTab === 'scheme' && (
-                    <div className="flex flex-col gap-4 pt-3 max-h-[300px] overflow-y-auto pr-1 pb-4">
+                    <div className="flex flex-col gap-4 pt-3 pb-4">
                       <div className="grid grid-cols-6 gap-3 gap-y-5 px-1">
-                        {colorSchemes.map((s) => (
-                          <button
-                            key={s.id}
-                            onClick={() => handleSchemeChange(s.id)}
-                            className={`w-7 h-7 rounded-full border transition-all flex items-center justify-center mx-auto ${
-                              scheme === s.id ? 'ring-2 ring-rose-600 border-rose-600' : 'hover:scale-110 border-black/5 opacity-80 hover:opacity-100'
-                            } ${s.bg}`}
-                            title={s.name}
-                          />
-                        ))}
-                        <label
-                          className={`w-7 h-7 rounded-full bg-white border transition-all flex items-center justify-center mx-auto cursor-pointer shadow-sm ${
-                            scheme === 'custom' ? 'ring-2 ring-rose-600 ring-offset-1 border-transparent' : 'border-black/10 hover:scale-125'
-                          }`}
-                          title="自定义颜色"
-                        >
-                          <input 
-                            type="color" 
-                            value={customPrimaryColor || '#3B82F6'} 
-                            onChange={(e) => handleCustomPrimaryChange(e.target.value)}
-                            className="sr-only"
-                          />
-                          <div 
-                            className="w-4 h-4 rounded-full" 
-                            style={{ 
-                              backgroundColor: customPrimaryColor || '#3B82F6',
-                              boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.1)"
-                            }} 
-                          />
-                        </label>
+                          {colorSchemes.map((s) => (
+                            <button
+                              key={s.id}
+                              onClick={() => handleSchemeChange(s.id)}
+                              className={`w-7 h-7 rounded-full border transition-all flex items-center justify-center mx-auto ${
+                                scheme === s.id ? 'ring-2 ring-rose-600 border-rose-600' : `hover:scale-110 ${isDarkBg ? 'border-white/10' : 'border-black/5'} opacity-80 hover:opacity-100`
+                              } ${s.id === 'original' ? '' : s.bg}`}
+                              style={s.id === 'original' ? { backgroundColor: getThemeDefaultColor(theme) } : {}}
+                              title={s.name}
+                            />
+                          ))}
+                        <ColorPicker 
+                          color={customPrimaryColor || '#3B82F6'} 
+                          onChange={(val) => handleCustomPrimaryChange(val)}
+                          title="自定义主色"
+                          isDarkBg={isDarkBg}
+                        />
                       </div>
                     </div>
                   )}
 
                   {/* Background List */}
                   {activeTab === 'background' && (
-                    <div className="flex flex-col gap-4 pt-3 max-h-[300px] overflow-y-auto pr-1 pb-4">
+                    <div className="flex flex-col gap-4 pt-3 pb-4">
                       <div className="grid grid-cols-6 gap-3 gap-y-5 px-1">
                         {backgrounds.map((b) => (
                           <button
@@ -1826,32 +1870,18 @@ export default function App() {
                             style={{ backgroundColor: b.color }}
                           />
                         ))}
-                        <label
-                          className={`w-7 h-7 rounded-full bg-white border transition-all flex items-center justify-center mx-auto cursor-pointer shadow-sm ${
-                            bgId === 'custom-color' ? 'ring-2 ring-rose-600 ring-offset-1 border-transparent' : 'border-black/10 hover:scale-125'
-                          }`}
-                          title="自定义配色"
-                        >
-                          <input 
-                            type="color" 
-                            value={customAppBgColor || '#F5F5F5'} 
-                            onChange={(e) => handleCustomAppBgChange(e.target.value)}
-                            className="sr-only"
-                          />
-                          <div 
-                            className="w-4 h-4 rounded-full" 
-                            style={{ 
-                              backgroundColor: customAppBgColor || '#F5F5F5',
-                              boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.1)"
-                            }} 
-                          />
-                        </label>
+                        <ColorPicker 
+                          color={customAppBgColor || '#F5F5F5'} 
+                          onChange={(val) => handleCustomAppBgChange(val)}
+                          title="自定义背景"
+                          isDarkBg={isDarkBg}
+                        />
                       </div>
                     </div>
                   )}
 {/* Card Background Tab */}
                    {activeTab === 'card' && (
-                     <div className="flex flex-col gap-4 pt-3 max-h-[450px] overflow-y-auto pr-1 pb-4">
+                     <div className="flex flex-col gap-4 pt-3 pb-4">
                        {/* 纸张纹理选择 */}
                        <div className="">
                          <div className="text-[10px] font-bold opacity-40 uppercase tracking-wider mb-2.5 flex items-center gap-2">
@@ -1871,7 +1901,7 @@ export default function App() {
                                className={`flex flex-col items-center gap-1 p-1.5 rounded-xl border transition-all ${
                                  cardTexture === t.id 
                                    ? 'bg-rose-600 border-rose-600 text-white' 
-                                   : 'bg-black/5 border-transparent hover:bg-black/10'
+                                   : `${isDarkBg ? 'bg-white/10' : 'bg-black/5'} border-transparent ${isDarkBg ? 'hover:bg-white/20' : 'hover:bg-black/10'}`
                                }`}
                              >
                                <div className={`w-full h-5 rounded-lg shadow-inner ${t.class} relative overflow-hidden`}>
@@ -1913,32 +1943,18 @@ export default function App() {
                                key={bg.id}
                                onClick={() => handleCardBgChange(bg.color)}
                                className={`w-7 h-7 rounded-full border transition-all flex items-center justify-center mx-auto ${
-                                 cardBg === bg.color && !isCustomCardBg ? 'ring-2 ring-rose-600 border-rose-600' : 'hover:scale-110 border-black/5 opacity-80 hover:opacity-100'
+                                 cardBg === bg.color && !isCustomCardBg ? 'ring-2 ring-rose-600 border-rose-600' : `hover:scale-110 ${isDarkBg ? 'border-white/10' : 'border-black/5'} opacity-80 hover:opacity-100`
                                }`}
                                style={{ backgroundColor: bg.color }}
                                title={bg.label}
                              />
                            ))}
-                           <label
-                             className={`w-7 h-7 rounded-full bg-white border transition-all flex items-center justify-center mx-auto cursor-pointer shadow-sm ${
-                               isCustomCardBg ? 'ring-2 ring-rose-600 ring-offset-1 border-transparent' : 'border-black/10 hover:scale-125'
-                             }`}
+                           <ColorPicker 
+                             color={customCardBgColor || '#FFFFFF'} 
+                             onChange={(val) => handleCustomCardBgChange(val)}
                              title="自定义卡片背景"
-                           >
-                             <input 
-                               type="color" 
-                               value={customCardBgColor || '#FFFFFF'} 
-                               onChange={(e) => handleCustomCardBgChange(e.target.value)}
-                               className="sr-only"
-                             />
-                             <div 
-                               className="w-4 h-4 rounded-full" 
-                               style={{ 
-                                 backgroundColor: customCardBgColor || '#FFFFFF',
-                                 boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.1)"
-                               }} 
-                             />
-                           </label>
+                             isDarkBg={isDarkBg}
+                           />
                          </div>
                        </div>
                         
@@ -1962,9 +1978,9 @@ export default function App() {
 
                    {/* Border Tab */}
                    {activeTab === 'border' && (
-                     <div className="flex flex-col gap-4 pt-3 max-h-[450px] overflow-y-auto pr-1 pb-4">
+                     <div className="flex flex-col gap-4 pt-3 pb-4">
                         <div className="grid grid-cols-6 gap-3 gap-y-5 px-1">
-                          {['#E5E7EB', '#D1D5DB', '#9CA3AF', '#4B5563', '#1F2937', '#000000', '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6'].map(c => (
+                          {['#E5E7EB', '#D1D5DB', '#9CA3AF', '#4B5563', '#1F2937', '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#FFFFFF'].map(c => (
                             <button
                               key={c}
                               onClick={() => handleBorderColorChange(c)}
@@ -1974,26 +1990,12 @@ export default function App() {
                               style={{ backgroundColor: c }}
                             />
                           ))}
-                          <label
-                            className={`w-7 h-7 rounded-full bg-white border transition-all flex items-center justify-center mx-auto cursor-pointer shadow-sm ${
-                              isCustomBorder ? 'ring-2 ring-rose-600 ring-offset-1 border-transparent' : 'border-black/10 hover:scale-125'
-                            }`}
+                          <ColorPicker 
+                            color={customBorderColor || '#000000'} 
+                            onChange={(val) => handleBorderColorChange(val, true)}
                             title="自定义边框颜色"
-                          >
-                            <input 
-                              type="color" 
-                              value={customBorderColor || '#000000'} 
-                              onChange={(e) => handleBorderColorChange(e.target.value, true)}
-                              className="sr-only"
-                            />
-                            <div 
-                              className="w-4 h-4 rounded-full" 
-                              style={{ 
-                                backgroundColor: customBorderColor || '#000000',
-                                boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.1)"
-                              }} 
-                            />
-                          </label>
+                            isDarkBg={isDarkBg}
+                          />
                         </div>
 
                         <div className="space-y-4 pt-4 px-1">
@@ -2045,7 +2047,7 @@ export default function App() {
                               className={`flex flex-col items-start gap-1 py-2 px-3 rounded-2xl text-xs transition-all border ${
                                 dateFont === f.id 
                                   ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-600/20' 
-                                  : 'bg-black/5 border-transparent hover:bg-black/10'
+                                  : `${isDarkBg ? 'bg-white/10' : 'bg-black/5'} border-transparent ${isDarkBg ? 'hover:bg-white/20' : 'hover:bg-black/10'}`
                               }`}
                             >
                               <span className="text-sm truncate w-full text-left" style={{ fontFamily: f.value }}>{f.name}</span>
@@ -2060,19 +2062,19 @@ export default function App() {
                           <Baseline className="w-3.5 h-3.5 opacity-50" />
                           <span className="text-[11px] font-bold opacity-60 uppercase tracking-widest">排版尺寸</span>
                         </div>
-                        <div className="bg-black/5 rounded-2xl p-3 space-y-3">
+                        <div className={`${isDarkBg ? 'bg-white/5' : 'bg-black/5'} rounded-2xl p-3 space-y-3`}>
                           <div className="flex gap-1.5">
-                            {[120, 160, 200, 280, 360].map((size) => (
+                            {[120, 200, 280, 360, 450].map((size) => (
                               <button
                                 key={size}
                                 onClick={() => handleDayFontSizeChange(size)}
                                 className={`flex-1 h-9 rounded-xl text-[10px] font-bold transition-all ${
-                                  dayFontSize === size || (!dayFontSize && size === 200)
+                                  dayFontSize === size || (!dayFontSize && size === (theme === 'vanguard' ? 360 : 200))
                                     ? 'bg-white text-rose-700 shadow-sm'
-                                    : 'text-black/40 hover:text-black/80'
+                                    : `${isDarkBg ? 'text-white/40 hover:text-white/80' : 'text-black/40 hover:text-black/80'}`
                                 }`}
                               >
-                                {size === 200 ? '默认' : size}
+                                {size === (theme === 'vanguard' ? 360 : 200) ? '默认' : size}
                               </button>
                             ))}
                           </div>
@@ -2081,9 +2083,9 @@ export default function App() {
                             min="80" 
                             max="500" 
                             step="10"
-                            value={dayFontSize || 200} 
+                            value={dayFontSize || (theme === 'vanguard' ? 360 : 200)} 
                             onChange={(e) => handleDayFontSizeChange(parseInt(e.target.value))}
-                            className="w-full h-1 bg-black/10 rounded-lg appearance-none cursor-pointer accent-rose-600"
+                            className={`w-full h-1 ${isDarkBg ? 'bg-white/20' : 'bg-black/10'} rounded-lg appearance-none cursor-pointer accent-rose-600`}
                           />
                         </div>
                       </div>
@@ -2107,7 +2109,7 @@ export default function App() {
                               className={`flex items-center justify-center h-12 rounded-2xl transition-all border font-medium ${
                                 dayStyle === s.id
                                   ? 'bg-rose-600 border-rose-600 text-white shadow-md'
-                                  : 'bg-black/5 border-transparent hover:bg-black/10'
+                                  : `${isDarkBg ? 'bg-white/10' : 'bg-black/5'} border-transparent ${isDarkBg ? 'hover:bg-white/20' : 'hover:bg-black/10'}`
                               }`}
                             >
                               <span className="text-[11px]">{s.name}</span>
@@ -2152,7 +2154,7 @@ export default function App() {
                               className={`flex flex-col items-start gap-0.5 py-1.5 px-3 rounded-xl text-xs transition-all border ${
                                 quoteFont === f.id 
                                   ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-600/20' 
-                                  : 'bg-black/5 border-transparent hover:bg-black/10'
+                                  : `${isDarkBg ? 'bg-white/10' : 'bg-black/5'} border-transparent ${isDarkBg ? 'hover:bg-white/20' : 'hover:bg-black/10'}`
                               }`}
                             >
                               <span className="text-xs truncate w-full text-left" style={{ fontFamily: f.value }}>{f.name}</span>
@@ -2168,7 +2170,7 @@ export default function App() {
                             <span className="text-[11px] font-bold opacity-60 uppercase tracking-widest">字号调节</span>
                           </div>
                           
-                          <div className="bg-black/5 rounded-2xl p-2 space-y-2">
+                          <div className={`${isDarkBg ? 'bg-white/5' : 'bg-black/5'} rounded-2xl p-2 space-y-2`}>
                             <div className="space-y-1">
                               <div className="flex items-center justify-between px-1">
                                 <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">金句字号</span>
@@ -2182,7 +2184,7 @@ export default function App() {
                                     className={`flex-1 h-6 rounded-lg text-[10px] font-bold transition-all ${
                                       quoteFontSize === size || (!quoteFontSize && size === 18)
                                         ? 'bg-white text-rose-700 shadow-sm'
-                                        : 'text-black/40 hover:text-black/80'
+                                        : `${isDarkBg ? 'text-white/40 hover:text-white/80' : 'text-black/40 hover:text-black/80'}`
                                     }`}
                                   >
                                     {size === 18 ? '默认' : size}
@@ -2204,7 +2206,7 @@ export default function App() {
                                     className={`flex-1 h-6 rounded-lg text-[10px] font-bold transition-all ${
                                       adviceFontSize === size || (!adviceFontSize && size === 14)
                                         ? 'bg-white text-rose-700 shadow-sm'
-                                        : 'text-black/40 hover:text-black/80'
+                                        : `${isDarkBg ? 'text-white/40 hover:text-white/80' : 'text-black/40 hover:text-black/80'}`
                                     }`}
                                   >
                                     {size === 14 ? '默认' : size}

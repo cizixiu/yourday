@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;800;900&family=JetBrains+Mono:wght@400;700&family=Bebas+Neue&family=Cormorant+Garamond:wght@700&family=Abril+Fatface&family=Satisfy&family=Space+Grotesk:wght@700&family=Outfit:wght@800&family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&family=ZCOOL+XiaoWei&family=ZCOOL+QingKe+HuangYou&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Inter:wght@400;500;800;900&family=JetBrains+Mono:wght@400;700&family=Bebas+Neue&family=Cormorant+Garamond:wght@700&family=Abril+Fatface&family=Satisfy&family=Space+Grotesk:wght@700&family=Outfit:wght@800&family=Bungee&family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&family=ZCOOL+XiaoWei&family=ZCOOL+QingKe+HuangYou&display=swap');
 @import "tailwindcss";
 
 @layer base {
@@ -37,11 +37,10 @@
 @theme {
   --font-sans: "Inter", "Noto Serif SC", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Georgia", "Times New Roman", "Noto Serif SC", serif;
-  --font-display: "Playfair Display", "Noto Serif SC", serif;
   --font-chinese: "Noto Serif SC", serif;
   
   /* Date Specific Fonts */
-  --font-date-playfair: "Playfair Display", serif;
+  --font-date-bungee: "Bungee", cursive;
   --font-date-bebas: "Bebas Neue", sans-serif;
   --font-date-cormorant: "Cormorant Garamond", serif;
   --font-date-abril: "Abril Fatface", serif;
@@ -59,6 +58,30 @@
   --font-quote-display: "ZCOOL XiaoWei", serif;
   --font-quote-modern: "ZCOOL QingKe HuangYou", cursive;
   --font-quote-mono: "JetBrains Mono", monospace;
+}
+
+/* react-colorful overrides */
+.react-colorful {
+  width: 100% !important;
+  height: 140px !important;
+  border-radius: 0 !important;
+}
+
+.react-colorful__saturation {
+  border-bottom: none !important;
+  border-radius: 0 !important;
+}
+
+.react-colorful__hue {
+  height: 10px !important;
+  margin-top: 12px !important;
+  border-radius: 5px !important;
+}
+
+.react-colorful__hue-pointer,
+.react-colorful__saturation-pointer {
+  width: 18px !important;
+  height: 18px !important;
 }
 
 body {
@@ -211,13 +234,34 @@ body {
 .theme-crimson {
   --bg-page: #F5F5F0;
   --bg-card: #FFFFFF;
-  --color-text: #800020;
-  --color-muted: #A0522D;
+  --color-primary: #e3b245;
+  --color-text: #e3b245;
+  --color-muted: #D4AF37;
   --border-card: #DCDCDC;
-  --border-accent: var(--color-primary, #800020);
+  --border-accent: var(--color-primary, #e3b245);
 }
 .theme-crimson .calendar-container {
   @apply border-none;
+}
+
+.theme-vanguard {
+  --bg-page: #000000;
+  --bg-card: #000000;
+  --color-primary: #ff3d00;
+  --color-text: #ff3d00;
+  --color-muted: #666666;
+  --border-card: #333333;
+  --border-accent: #ff3d00;
+}
+.theme-vanguard .calendar-container {
+  @apply border-none shadow-none;
+}
+.theme-vanguard .main-date {
+  font-size: var(--date-font-size, clamp(160px, 80cqw, 450px));
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+  font-weight: 900;
+  mix-blend-mode: difference;
 }
 .theme-crimson .month-box {
   @apply w-16 h-16 flex items-center justify-center rounded-full bg-[var(--border-accent)] text-white border-none p-0 text-xl font-bold;
@@ -361,13 +405,36 @@ body {
   border-color: var(--border-card);
 }
 
+.theme-classic .sidebar-left,
+.theme-bold .sidebar-left,
+.theme-warm .sidebar-left,
+.theme-technical .sidebar-left,
+.theme-editorial .sidebar-left,
+.theme-vintage .sidebar-left,
+.theme-crimson .sidebar-left,
+.theme-vanguard .sidebar-left {
+  border-color: color-mix(in srgb, var(--border-accent), transparent 60%);
+}
+
 .sidebar-right {
   @apply border-r pr-2 md:pr-3 mr-2 md:mr-4;
   border-color: var(--border-card);
 }
 
+.theme-classic .sidebar-right,
+.theme-bold .sidebar-right,
+.theme-warm .sidebar-right,
+.theme-technical .sidebar-right,
+.theme-editorial .sidebar-right,
+.theme-vintage .sidebar-right,
+.theme-crimson .sidebar-right,
+.theme-vanguard .sidebar-right {
+  border-color: color-mix(in srgb, var(--border-accent), transparent 60%);
+}
+
 .theme-traditional .sidebar {
-  @apply text-sm tracking-[4px];
+  @apply tracking-[4px];
+  font-size: clamp(10px, 3.2cqw, 14px);
   border: none;
 }
 
@@ -403,7 +470,7 @@ body {
 }
 
 .theme-technical .bottom-section {
-  @apply border-t border-current/40 bg-black/10 p-6;
+  @apply border-t border-current/40 bg-transparent p-6;
 }
 
 
