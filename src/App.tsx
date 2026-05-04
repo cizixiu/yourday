@@ -50,6 +50,8 @@ export default function App() {
   const [cardTexture, setCardTexture] = useState('none');
   const [footerText, setFooterText] = useState('Your Day');
   const [isManualMode, setIsManualMode] = useState(false);
+  const [showSuitable, setShowSuitable] = useState(true);
+  const [showAvoid, setShowAvoid] = useState(true);
   const [isTearing, setIsTearing] = useState(false);
 
   const cardBgs = [
@@ -175,6 +177,12 @@ export default function App() {
 
     const savedManualMode = localStorage.getItem('calendar-manual-mode') === 'true';
     setIsManualMode(savedManualMode);
+
+    const savedShowSuitable = localStorage.getItem('calendar-show-suitable');
+    if (savedShowSuitable !== null) setShowSuitable(savedShowSuitable === 'true');
+
+    const savedShowAvoid = localStorage.getItem('calendar-show-avoid');
+    if (savedShowAvoid !== null) setShowAvoid(savedShowAvoid === 'true');
     
     // If manual mode, try to load last valid date
     if (savedManualMode) {
@@ -200,6 +208,16 @@ export default function App() {
     if (!val) {
       setCurrentDate(new Date());
     }
+  };
+
+  const handleToggleSuitable = (val: boolean) => {
+    setShowSuitable(val);
+    localStorage.setItem('calendar-show-suitable', String(val));
+  };
+
+  const handleToggleAvoid = (val: boolean) => {
+    setShowAvoid(val);
+    localStorage.setItem('calendar-show-avoid', String(val));
   };
 
   const handleTear = () => {
@@ -400,6 +418,8 @@ export default function App() {
     setIsCustomBorder(false);
     setIsCustomCardBg(false);
     setIsManualMode(false);
+    setShowSuitable(true);
+    setShowAvoid(true);
     setHasShadow(true);
     setFooterText('Your Day');
     
@@ -433,6 +453,8 @@ export default function App() {
       'calendar-custom-quote',
       'calendar-custom-source',
       'calendar-manual-mode',
+      'calendar-show-suitable',
+      'calendar-show-avoid',
       'calendar-last-date'
     ];
     overrideKeys.forEach(key => localStorage.removeItem(key));
@@ -971,36 +993,40 @@ export default function App() {
             {calendarData.monthName}
           </div>
           <div className="text-right flex flex-col items-end gap-3" id="header-advice">
-            <div className="flex flex-col items-end">
-              <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] mb-1">今日宜</span>
-              <div 
-                className="text-xs font-bold opacity-60 leading-tight max-w-[140px] flex flex-wrap justify-end gap-x-2 gap-y-0.5 overflow-hidden" 
-                style={{ 
-                  fontFamily: currentQuoteFontValue, 
-                  fontSize: adviceFontSize ? `${adviceFontSize}px` : undefined,
-                  maxHeight: adviceFontSize ? `${adviceFontSize * 1.35 * 2}px` : '2.7em'
-                }}
-              >
-                {calendarData.dayYi.map((item: string, i: number) => (
-                  <span key={i} className="whitespace-nowrap">{item}</span>
-                ))}
+            {showSuitable && (
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] mb-1">今日宜</span>
+                <div 
+                  className="text-xs font-bold opacity-60 leading-tight max-w-[140px] flex flex-wrap justify-end gap-x-2 gap-y-0.5 overflow-hidden" 
+                  style={{ 
+                    fontFamily: currentQuoteFontValue, 
+                    fontSize: adviceFontSize ? `${adviceFontSize}px` : undefined,
+                    maxHeight: adviceFontSize ? `${adviceFontSize * 1.35 * 2}px` : '2.7em'
+                  }}
+                >
+                  {calendarData.dayYi.map((item: string, i: number) => (
+                    <span key={i} className="whitespace-nowrap">{item}</span>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="flex flex-col items-end">
-              <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] mb-1">今日忌</span>
-              <div 
-                className="text-xs font-bold opacity-60 leading-tight max-w-[140px] flex flex-wrap justify-end gap-x-2 gap-y-0.5 overflow-hidden" 
-                style={{ 
-                  fontFamily: currentQuoteFontValue, 
-                  fontSize: adviceFontSize ? `${adviceFontSize}px` : undefined,
-                  maxHeight: adviceFontSize ? `${adviceFontSize * 1.35 * 2}px` : '2.7em'
-                }}
-              >
-                {calendarData.dayJi.map((item: string, i: number) => (
-                  <span key={i} className="whitespace-nowrap">{item}</span>
-                ))}
+            )}
+            {showAvoid && (
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] mb-1">今日忌</span>
+                <div 
+                  className="text-xs font-bold opacity-60 leading-tight max-w-[140px] flex flex-wrap justify-end gap-x-2 gap-y-0.5 overflow-hidden" 
+                  style={{ 
+                    fontFamily: currentQuoteFontValue, 
+                    fontSize: adviceFontSize ? `${adviceFontSize}px` : undefined,
+                    maxHeight: adviceFontSize ? `${adviceFontSize * 1.35 * 2}px` : '2.7em'
+                  }}
+                >
+                  {calendarData.dayJi.map((item: string, i: number) => (
+                    <span key={i} className="whitespace-nowrap">{item}</span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </header>
 
@@ -2149,16 +2175,13 @@ export default function App() {
                   {/* Settings Tab */}
                   {activeTab === 'setting' && (
                     <div className="flex flex-col gap-6 p-3 pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold opacity-60 uppercase tracking-widest">系统设置</span>
-                      </div>
-                      
+
                       <div className="space-y-4 pr-3">
                         {/* Manual Mode Toggle */}
                         <div className="flex items-center justify-between p-3 rounded-2xl bg-black/5 hover:bg-black/10 transition-colors">
                           <div className="flex flex-col gap-0.5">
                             <span className="text-[13px] font-bold">手撕日历模式</span>
-                            <span className="text-[10px] opacity-40 leading-tight">开启后每天需手动撕掉旧日期<br/>才有今天的新日期</span>
+                            <span className="text-[10px] opacity-40 leading-tight">开启后需手撕旧日期才有新日期</span>
                           </div>
                           <button 
                             onClick={() => handleManualModeToggle(!isManualMode)}
@@ -2166,6 +2189,38 @@ export default function App() {
                           >
                             <motion.div 
                               animate={{ x: isManualMode ? 20 : 0 }}
+                              className="w-4 h-4 bg-white rounded-full shadow-md"
+                            />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 rounded-2xl bg-black/5 hover:bg-black/10 transition-colors">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[13px] font-bold">显示“宜”</span>
+                            <span className="text-[10px] opacity-40 leading-tight">控制卡片右上角“今日宜”内容显示</span>
+                          </div>
+                          <button 
+                            onClick={() => handleToggleSuitable(!showSuitable)}
+                            className={`w-11 h-6 rounded-full p-1 transition-colors duration-300 relative ${showSuitable ? 'bg-rose-600' : 'bg-gray-300'}`}
+                          >
+                            <motion.div 
+                              animate={{ x: showSuitable ? 20 : 0 }}
+                              className="w-4 h-4 bg-white rounded-full shadow-md"
+                            />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 rounded-2xl bg-black/5 hover:bg-black/10 transition-colors">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[13px] font-bold">显示“忌”</span>
+                            <span className="text-[10px] opacity-40 leading-tight">控制卡片右上角“今日忌”内容显示</span>
+                          </div>
+                          <button 
+                            onClick={() => handleToggleAvoid(!showAvoid)}
+                            className={`w-11 h-6 rounded-full p-1 transition-colors duration-300 relative ${showAvoid ? 'bg-rose-600' : 'bg-gray-300'}`}
+                          >
+                            <motion.div 
+                              animate={{ x: showAvoid ? 20 : 0 }}
                               className="w-4 h-4 bg-white rounded-full shadow-md"
                             />
                           </button>
