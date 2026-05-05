@@ -98,8 +98,9 @@ body {
   --bg-page: #E5E5E1;
   --bg-card: #FDFDFB;
   --color-text: #1A1A1A;
-  --color-muted: #666;
+  --color-muted: #1A1A1AAA;
   --border-card: #DCDCDC;
+  --color-primary: #1A1A1A;
   --border-accent: var(--color-primary, #1A1A1A);
   --font-main: var(--font-serif);
 }
@@ -108,10 +109,11 @@ body {
 .theme-classic {
   --bg-page: #F5F3F0;
   --bg-card: #FFFFFF;
-  --color-text: #1A1A1A;
-  --color-muted: #888;
+  --color-text: #000000;
+  --color-muted: #000000AA;
   --border-card: rgba(0,0,0,0.08);
-  --border-accent: var(--color-primary, #1A1A1A);
+  --color-primary: #000000;
+  --border-accent: var(--color-primary, #000000);
   --font-main: var(--font-chinese);
 }
 .theme-classic .month-box {
@@ -124,10 +126,11 @@ body {
 .theme-dark {
   --bg-page: #121212;
   --bg-card: #1E1E1E;
-  --color-text: #E0E0E0;
-  --color-muted: #AAAAAA;
+  --color-text: #3B82F6;
+  --color-muted: #3B82F6AA;
   --border-card: #333;
-  --border-accent: var(--color-primary, #E0E0E0);
+  --color-primary: #3B82F6;
+  --border-accent: var(--color-primary, #3B82F6);
   --font-main: var(--font-serif);
 }
 
@@ -135,9 +138,10 @@ body {
 .theme-warm {
   --bg-page: #EDE0D4;
   --bg-card: #F5EBE0;
-  --color-text: #4E342E;
-  --color-muted: #8D6E63;
+  --color-text: #5D4037;
+  --color-muted: #5D4037AA;
   --border-card: #D7CCC8;
+  --color-primary: #5D4037;
   --border-accent: var(--color-primary, #5D4037);
   --font-main: var(--font-serif);
 }
@@ -147,8 +151,9 @@ body {
   --bg-page: #0A192F;
   --bg-card: #112240;
   --color-text: #64FFDA;
-  --color-muted: #A8B2D1;
+  --color-muted: #64FFDAAA;
   --border-card: #233554;
+  --color-primary: #64FFDA;
   --border-accent: var(--color-primary, #64FFDA);
   --font-main: "JetBrains Mono", monospace;
 }
@@ -157,9 +162,10 @@ body {
 .theme-poster {
   --bg-page: #1A1A1A;
   --bg-card: #FFFFFF;
-  --color-text: #000000;
-  --color-muted: #999;
+  --color-text: #C41E3A;
+  --color-muted: #C41E3AAA;
   --border-card: transparent;
+  --color-primary: #C41E3A;
   --border-accent: var(--color-primary, #C41E3A);
   --font-main: var(--font-sans);
 }
@@ -168,9 +174,10 @@ body {
 .theme-traditional {
   --bg-page: #F4EBE2;
   --bg-card: #FDFBF7;
-  --color-text: #2A0E08;
-  --color-muted: #8E7162;
+  --color-text: #B03A2E;
+  --color-muted: #B03A2EAA;
   --border-card: #EADBC8;
+  --color-primary: #B03A2E;
   --border-accent: var(--color-primary, #B03A2E);
   --font-main: var(--font-chinese);
 }
@@ -180,8 +187,9 @@ body {
   --bg-page: #F8F8F8;
   --bg-card: #FFFFFF;
   --color-text: #000000;
-  --color-muted: #999999;
+  --color-muted: #000000AA;
   --border-card: #EEEEEE;
+  --color-primary: #000000;
   --border-accent: var(--color-primary, #000000);
 }
 .theme-editorial .month-box {
@@ -195,9 +203,10 @@ body {
 .theme-vintage {
   --bg-page: #E76F51;
   --bg-card: #F4A261;
-  --color-text: #264653;
-  --color-muted: #0a0a0a;
+  --color-text: #E76F51;
+  --color-muted: #E76F51AA;
   --border-card: #264653;
+  --color-primary: #E76F51;
   --border-accent: var(--color-primary, #E76F51);
 }
 .theme-vintage .calendar-container {
@@ -218,9 +227,10 @@ body {
 .theme-zen {
   --bg-page: #DCEDC8;
   --bg-card: #F1F8E9;
-  --color-text: #33691E;
-  --color-muted: #689F38;
+  --color-text: #8BC34A;
+  --color-muted: #8BC34AAA;
   --border-card: #C5E1A5;
+  --color-primary: #8BC34A;
   --border-accent: var(--color-primary, #8BC34A);
 }
 .theme-zen .calendar-container {
@@ -236,7 +246,7 @@ body {
   --bg-card: #FFFFFF;
   --color-primary: #e3b245;
   --color-text: #e3b245;
-  --color-muted: #D4AF37;
+  --color-muted: #e3b245AA;
   --border-card: #DCDCDC;
   --border-accent: var(--color-primary, #e3b245);
 }
@@ -249,7 +259,7 @@ body {
   --bg-card: #21112D;
   --color-primary: #CE93D8;
   --color-text: #CE93D8;
-  --color-muted: #E1BEE7;
+  --color-muted: #CE93D8AA;
   --border-card: #311B92;
   --border-accent: #CE93D8;
 }
@@ -257,12 +267,12 @@ body {
   @apply border-none shadow-none;
 }
 .theme-vanguard .sidebar {
-  color: var(--color-primary) !important;
+  color: var(--color-text) !important;
   opacity: 1 !important;
 }
 .theme-vanguard .quote-meta,
 .theme-vanguard .footer-day-year div:first-child {
-  color: var(--color-primary) !important;
+  color: var(--color-text) !important;
   opacity: 1 !important;
 }
 .theme-vanguard .main-date {
@@ -319,6 +329,7 @@ body {
 
 .month-box {
   border-color: var(--border-accent);
+  color: var(--color-primary);
   @apply border-2 px-3 py-1 font-black tracking-[2px] uppercase transition-all duration-500 whitespace-nowrap flex-shrink-0;
   font-size: clamp(14px, 3.5cqw, 18px);
 }
@@ -334,6 +345,7 @@ body {
 .date-number {
   font-family: var(--dynamic-font, var(--font-serif));
   font-size: var(--date-font-size, clamp(140px, 52cqw, 280px));
+  color: var(--color-primary);
   @apply leading-[1.1] select-none transition-all duration-500 my-2 md:my-0 inline-block;
   padding: 0.03em 0.08em;
 }
@@ -422,7 +434,7 @@ body {
 .theme-vintage .sidebar-left,
 .theme-crimson .sidebar-left,
 .theme-vanguard .sidebar-left {
-  border-color: color-mix(in srgb, var(--border-accent), transparent 60%);
+  border-color: color-mix(in srgb, var(--color-text), transparent 60%);
 }
 
 .sidebar-right {
@@ -438,7 +450,7 @@ body {
 .theme-vintage .sidebar-right,
 .theme-crimson .sidebar-right,
 .theme-vanguard .sidebar-right {
-  border-color: color-mix(in srgb, var(--border-accent), transparent 60%);
+  border-color: color-mix(in srgb, var(--color-text), transparent 60%);
 }
 
 .theme-traditional .sidebar {

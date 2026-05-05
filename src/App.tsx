@@ -7,7 +7,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Solar, Lunar } from 'lunar-javascript';
 import { QUOTES, ADVICE_POOL } from './data/quotes';
-import { Palette, X, Download, RefreshCw, RotateCcw, Type, Baseline, Layers, Check, ChevronLeft, ChevronRight, Calendar, Pipette } from 'lucide-react';
+import { Palette, X, Download, RefreshCw, RotateCcw, Type, Baseline, Layers, Check, ChevronLeft, ChevronRight, Calendar, Pipette, Link, Link2Off } from 'lucide-react';
 import { toCanvas } from 'html-to-image';
 import { ColorPicker } from './components/ColorPicker';
 
@@ -42,6 +42,8 @@ export default function App() {
   const [isFontSync, setIsFontSync] = useState(false);
   const [cardBg, setCardBg] = useState<string>('');
   const [customPrimaryColor, setCustomPrimaryColor] = useState<string>('');
+  const [customMutedColor, setCustomMutedColor] = useState<string>('');
+  const [isColorLinked, setIsColorLinked] = useState(true);
   const [customAppBgColor, setCustomAppBgColor] = useState<string>('');
   const [customCardBgColor, setCustomCardBgColor] = useState<string>('');
   const [customQuoteText, setCustomQuoteText] = useState<string>('');
@@ -162,6 +164,12 @@ export default function App() {
 
     const savedCustomPrimary = localStorage.getItem('calendar-custom-primary');
     if (savedCustomPrimary) setCustomPrimaryColor(savedCustomPrimary);
+
+    const savedCustomMuted = localStorage.getItem('calendar-custom-muted');
+    if (savedCustomMuted) setCustomMutedColor(savedCustomMuted);
+
+    const savedColorLinked = localStorage.getItem('calendar-color-linked');
+    if (savedColorLinked !== null) setIsColorLinked(savedColorLinked === 'true');
 
     const savedCustomAppBg = localStorage.getItem('calendar-custom-app-bg');
     if (savedCustomAppBg) setCustomAppBgColor(savedCustomAppBg);
@@ -289,9 +297,31 @@ export default function App() {
 
   const handleCustomPrimaryChange = (color: string) => {
     setCustomPrimaryColor(color);
+    if (isColorLinked) {
+      setCustomMutedColor(color);
+      localStorage.setItem('calendar-custom-muted', color);
+    }
     setScheme('custom');
     localStorage.setItem('calendar-custom-primary', color);
     localStorage.setItem('calendar-scheme', 'custom');
+  };
+
+  const handleCustomMutedChange = (color: string) => {
+    setCustomMutedColor(color);
+    setScheme('custom');
+    localStorage.setItem('calendar-custom-muted', color);
+    localStorage.setItem('calendar-scheme', 'custom');
+  };
+
+  const toggleColorLink = () => {
+    const newState = !isColorLinked;
+    setIsColorLinked(newState);
+    localStorage.setItem('calendar-color-linked', String(newState));
+    if (newState) {
+      // When linking, sync muted to primary
+      setCustomMutedColor(customPrimaryColor);
+      localStorage.setItem('calendar-custom-muted', customPrimaryColor);
+    }
   };
 
   const handleBgChange = (newBg: string) => {
@@ -796,12 +826,12 @@ export default function App() {
 
   const schemeStyles = useMemo(() => {
     let styles: any = {};
-    if (scheme === 'custom' && customPrimaryColor) {
+    if (scheme === 'custom' && (customPrimaryColor || customMutedColor)) {
       styles = { 
-        '--color-primary': customPrimaryColor,
-        '--border-accent': customPrimaryColor,
-        '--color-text': customPrimaryColor,
-        '--color-muted': customPrimaryColor
+        '--color-primary': customPrimaryColor || '#3B82F6',
+        '--border-accent': customPrimaryColor || '#3B82F6',
+        '--color-text': (isColorLinked ? customPrimaryColor : customMutedColor) || customPrimaryColor || '#3B82F6',
+        '--color-muted': (isColorLinked ? customPrimaryColor : customMutedColor) || customPrimaryColor || '#3B82F6'
       };
     } else {
       const currentSchemeData = colorSchemes.find(s => s.id === scheme);
@@ -823,13 +853,31 @@ export default function App() {
     styles['--color-primary-rgb'] = hexToRgb(primary);
     
     return styles;
-  }, [scheme, customPrimaryColor, isThemeDark]);
+  }, [scheme, customPrimaryColor, customMutedColor, isColorLinked, isThemeDark]);
 
   const [isDownloading, setIsDownloading] = useState(false);
 
   const primaryColor = useMemo(() => {
-    return schemeStyles['--color-primary'] || schemeStyles['--border-accent'] || (isThemeDark ? '#FDA4AF' : '#E11D48');
-  }, [schemeStyles, isThemeDark]);
+    if (schemeStyles['--color-primary'] || schemeStyles['--border-accent']) {
+      return schemeStyles['--color-primary'] || schemeStyles['--border-accent'];
+    }
+    // Fallbacks based on theme
+    switch (theme) {
+      case 'technical': return '#64FFDA';
+      case 'vanguard': return '#CE93D8';
+      case 'dark': return '#3B82F6';
+      case 'warm': return '#5D4037';
+      case 'traditional': return '#B03A2E';
+      case 'poster': return '#C41E3A';
+      case 'zen': return '#8BC34A';
+      case 'vintage': return '#E76F51';
+      case 'crimson': return '#e3b245';
+      case 'editorial': return '#000000';
+      case 'bold': return '#1A1A1A';
+      case 'classic': return '#000000';
+      default: return isThemeDark ? '#3B82F6' : '#E11D48';
+    }
+  }, [schemeStyles, isThemeDark, theme]);
 
   const handleDownload = async () => {
     const node = document.getElementById('calendar-container');
@@ -962,32 +1010,35 @@ export default function App() {
 
   // Semi-dynamic styling for the tear button
   const tearButtonStyle = useMemo(() => {
-    let baseColor = '#e11d48'; // Default rose-600
-    let hoverColor = '#be123c'; // Default rose-700
-    let shadowColor = 'rgba(225, 29, 72, 0.4)';
+    let baseColor = primaryColor || '#e11d48'; // Use calculated primaryColor
+    let shadowColor = `${baseColor}44`;
     
-    // Find current scheme configuration
-    const currentScheme = colorSchemes.find(s => s.id === scheme);
-    const mode = isDarkBg ? 'dark' : 'light';
-    const cfg = currentScheme?.[mode as keyof typeof currentScheme] as any || currentScheme?.light;
-    
-    if (cfg && cfg['--border-accent']) {
-      baseColor = cfg['--border-accent'];
-      hoverColor = baseColor; // Simplified for dynamic colors
-      shadowColor = `${baseColor}44`;
+    // Calculate if text should be dark or light based on baseColor brightness
+    let isLightText = true;
+    if (baseColor.startsWith('#')) {
+      const hex = baseColor.slice(1);
+      let r, g, b;
+      if (hex.length === 3) {
+        r = parseInt(hex[0] + hex[0], 16);
+        g = parseInt(hex[1] + hex[1], 16);
+        b = parseInt(hex[2] + hex[2], 16);
+      } else {
+        r = parseInt(hex.substring(0, 2), 16);
+        g = parseInt(hex.substring(2, 4), 16);
+        b = parseInt(hex.substring(4, 6), 16);
+      }
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      isLightText = brightness < 160; // Standard threshold
     }
 
-    // Special cases for certain themes
-    if (theme === 'technical') {
-      baseColor = '#64FFDA';
-      shadowColor = 'rgba(100, 255, 218, 0.3)';
-    } else if (theme === 'vanguard') {
-      baseColor = '#000000';
-      shadowColor = 'rgba(0, 0, 0, 0.2)';
-    }
-
-    return { baseColor, hoverColor, shadowColor };
-  }, [scheme, theme, isDarkBg, colorSchemes]);
+    return { 
+      baseColor, 
+      shadowColor, 
+      textColor: isLightText ? '#FFFFFF' : '#121212',
+      badgeBgColor: isLightText ? '#FACC15' : 'rgba(0,0,0,0.15)',
+      badgeTextColor: isLightText ? '#991B1B' : '#121212' 
+    };
+  }, [primaryColor, theme, isDarkBg]);
 
   const btnBaseClass = isDarkBg 
     ? 'bg-black/40 backdrop-blur-md text-white border-white/10 hover:bg-black/60' 
@@ -1213,7 +1264,7 @@ export default function App() {
                   style={{ top: '-12px', right: '2px' }}
                 >
                   {calendarData.festivals && (
-                    <div className="bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] py-1 px-1 flex flex-col items-center gap-0.5">
+                    <div className="bg-[var(--color-text)]/10 border border-[var(--color-text)]/20 text-[var(--color-text)] py-1 px-1 flex flex-col items-center gap-0.5">
                       <div className="w-[1px] h-1.5 bg-current opacity-30 mb-0.5" />
                       <div className="text-[9px] font-bold [writing-mode:vertical-rl] tracking-[1px] py-1">
                         {calendarData.festivals.split(' ')[0]}
@@ -1222,10 +1273,10 @@ export default function App() {
                     </div>
                   )}
                   {calendarData.solarTerm && (
-                    <div className={`bg-[var(--color-primary)]/10 text-[var(--color-primary)] py-1 px-0.5 flex flex-col items-center gap-0.5 ${
-                      theme === 'crimson' ? 'border border-[var(--color-primary)]/20 rounded-full px-1' : 
-                      theme === 'editorial' ? 'border-b border-[var(--color-primary)]/20' : 
-                      'border border-[var(--color-primary)]/20'
+                    <div className={`bg-[var(--color-text)]/10 text-[var(--color-text)] py-1 px-0.5 flex flex-col items-center gap-0.5 ${
+                      theme === 'crimson' ? 'border border-[var(--color-text)]/20 rounded-full px-1' : 
+                      theme === 'editorial' ? 'border-b border-[var(--color-text)]/20' : 
+                      'border border-[var(--color-text)]/20'
                     }`}>
                       <div className="text-[10px] font-bold [writing-mode:vertical-rl] tracking-[1px] py-1">
                         {calendarData.solarTerm}
@@ -1239,14 +1290,14 @@ export default function App() {
               {theme === 'poster' && (
                 <div className="absolute left-1 top-10 flex flex-col items-start gap-1 z-10">
                   {calendarData.festivals && (
-                    <div className="border border-[var(--color-primary)] text-[var(--color-primary)] px-2 py-0.5 flex items-center gap-2">
+                    <div className="border border-[var(--color-text)] text-[var(--color-text)] px-2 py-0.5 flex items-center gap-2">
                       <div className="text-[9px] font-black uppercase tracking-[2px]">
                         {calendarData.festivals.split(' ')[0]}
                       </div>
                     </div>
                   )}
                   {calendarData.solarTerm && (
-                    <div className="border border-[var(--color-primary)] text-[var(--color-primary)] px-2 py-0.5 flex items-center gap-2">
+                    <div className="border border-[var(--color-text)] text-[var(--color-text)] px-2 py-0.5 flex items-center gap-2">
                       <div className="text-[8px] font-bold uppercase tracking-[1px]">
                         {calendarData.solarTerm}
                       </div>
@@ -1259,13 +1310,13 @@ export default function App() {
               {(theme === 'technical') && (
                 <div className="absolute top-0 right-1 flex flex-col items-end gap-1 z-10">
                   {calendarData.festivals && (
-                    <div className="flex items-center gap-2 border border-[var(--color-primary)] text-[var(--color-primary)] px-3 py-1 text-[11px] font-black tracking-widest leading-none bg-[var(--color-primary)]/5">
+                    <div className="flex items-center gap-2 border border-[var(--color-text)] text-[var(--color-text)] px-3 py-1 text-[11px] font-black tracking-widest leading-none bg-[var(--color-text)]/5">
                       {calendarData.festivals.split(' ')[0]}
                       <span className="opacity-50 text-[8px]">●</span>
                     </div>
                   )}
                   {calendarData.solarTerm && (
-                    <div className="flex items-center gap-2 border border-[var(--color-primary)] text-[var(--color-primary)] px-2 py-0.5 text-[9px] font-bold tracking-wider leading-none">
+                    <div className="flex items-center gap-2 border border-[var(--color-text)] text-[var(--color-text)] px-2 py-0.5 text-[9px] font-bold tracking-wider leading-none">
                       {calendarData.solarTerm}
                       <span className="opacity-30 text-[6px]">○</span>
                     </div>
@@ -1275,7 +1326,7 @@ export default function App() {
               {/* 5. Vanguard: Bold Overlapping Text */}
               {theme === 'vanguard' && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
-                  <span className="text-[200px] font-black tracking-tighter break-all leading-none text-center text-[var(--color-primary)]">
+                  <span className="text-[200px] font-black tracking-tighter break-all leading-none text-center text-[var(--color-text)]">
                     {calendarData.festivals ? calendarData.festivals.split(' ')[0] : calendarData.solarTerm}
                   </span>
                 </div>
@@ -1286,7 +1337,7 @@ export default function App() {
           <div 
             className={`absolute left-0 top-1/2 -translate-y-1/2 sidebar sidebar-left ${theme === 'classic' || theme === 'traditional' ? '-mt-[15px]' : ''}`} 
             id="side-left"
-            style={theme === 'vanguard' ? { color: 'var(--color-primary)', opacity: 1 } : {}}
+            style={theme === 'vanguard' ? { color: 'var(--color-text)', opacity: 1 } : {}}
           >
             {calendarData.lunarDate}
           </div>
@@ -1321,8 +1372,8 @@ export default function App() {
                   <div className="flex items-center gap-3">
                     {calendarData.festivals && (
                       <span 
-                        className={`text-[10px] font-black tracking-[4px] uppercase ${theme === 'bold' ? 'text-[var(--color-primary)]' : 'opacity-60'}`}
-                        style={theme === 'vanguard' ? { color: 'var(--color-primary)', opacity: 1 } : {}}
+                        className={`text-[10px] font-black tracking-[4px] uppercase ${theme === 'bold' ? 'text-[var(--color-text)]' : 'opacity-60'}`}
+                        style={theme === 'vanguard' ? { color: 'var(--color-text)', opacity: 1 } : {}}
                       >
                         {calendarData.festivals.split(' ')[0]}
                       </span>
@@ -1341,7 +1392,7 @@ export default function App() {
           <div 
             className={`absolute right-0 top-1/2 -translate-y-1/2 sidebar sidebar-right ${theme === 'classic' || theme === 'traditional' ? '-mt-[15px]' : ''}`} 
             id="side-right"
-            style={theme === 'vanguard' ? { color: 'var(--color-primary)', opacity: 1 } : {}}
+            style={theme === 'vanguard' ? { color: 'var(--color-text)', opacity: 1 } : {}}
           >
             {calendarData.lunarGanzhi}
           </div>
@@ -1358,7 +1409,7 @@ export default function App() {
           <div 
             className={`quote-meta text-xs italic ${theme === 'classic' ? 'text-center' : 'text-right'}`} 
             id="quote-meta"
-            style={theme === 'vanguard' ? { color: 'var(--color-primary)', opacity: 1 } : {}}
+            style={theme === 'vanguard' ? { color: 'var(--color-text)', opacity: 1 } : {}}
           >
             —— {calendarData.quote.author} {calendarData.quote.book ? `《${calendarData.quote.book}》` : ''}
           </div>
@@ -1394,7 +1445,7 @@ export default function App() {
                   className="flex items-center gap-3 pl-6 pr-2 py-2 rounded-full shadow-lg transition-all group relative border border-white/20 backdrop-blur-md"
                   style={{ 
                     backgroundColor: tearButtonStyle.baseColor,
-                    color: (theme === 'technical' || theme === 'vanguard') ? '#121212' : 'white',
+                    color: tearButtonStyle.textColor,
                     boxShadow: `0 8px 30px ${tearButtonStyle.shadowColor}`
                   }}
                   title="撕掉当前页，开启新的一天"
@@ -1406,11 +1457,11 @@ export default function App() {
 
                   <div 
                     className="w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 shrink-0"
-                    style={{ backgroundColor: (theme === 'technical' || theme === 'vanguard') ? '#121212' : '#FACC15' }}
+                    style={{ backgroundColor: tearButtonStyle.badgeBgColor }}
                   >
                     <span 
                       className="text-2xl md:text-3xl font-black leading-none"
-                      style={{ color: (theme === 'technical' || theme === 'vanguard') ? tearButtonStyle.baseColor : tearButtonStyle.baseColor }}
+                      style={{ color: (theme === 'technical' || theme === 'vanguard') ? tearButtonStyle.baseColor : tearButtonStyle.badgeTextColor }}
                     >{diff}</span>
                   </div>
 
@@ -1418,11 +1469,11 @@ export default function App() {
                   <div className="absolute -top-1 -right-1">
                     <div 
                       className="w-3 h-3 rounded-full animate-ping opacity-75" 
-                      style={{ backgroundColor: (theme === 'technical' || theme === 'vanguard') ? 'white' : '#FACC15' }}
+                      style={{ backgroundColor: tearButtonStyle.badgeBgColor }}
                     />
                     <div 
                       className="absolute inset-0 w-3 h-3 rounded-full border border-black/10 shadow-sm" 
-                      style={{ backgroundColor: (theme === 'technical' || theme === 'vanguard') ? 'white' : '#FACC15' }}
+                      style={{ backgroundColor: tearButtonStyle.badgeBgColor }}
                     />
                   </div>
                 </motion.button>
@@ -1433,7 +1484,7 @@ export default function App() {
           <div className="text-right flex flex-col items-end gap-0.5 footer-day-year" id="footer-day-year">
             <div 
               className={`text-[11px] ${theme === 'vanguard' ? 'font-bold' : 'text-[var(--color-muted)]'}`}
-              style={theme === 'vanguard' ? { color: 'var(--color-primary)', opacity: 1 } : {}}
+              style={theme === 'vanguard' ? { color: 'var(--color-text)', opacity: 1 } : {}}
             >
               {calendarData.year}年
             </div>
@@ -1934,7 +1985,7 @@ export default function App() {
 
                   {/* Scheme List */}
                   {activeTab === 'scheme' && (
-                    <div className="flex flex-col gap-4 pt-3 pb-4">
+                    <div className="flex flex-col gap-5 pt-3 pb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                       <div className="grid grid-cols-6 gap-3 gap-y-5 px-1">
                           {colorSchemes.map((s) => (
                             <button
@@ -1947,12 +1998,52 @@ export default function App() {
                               title={s.name}
                             />
                           ))}
-                        <ColorPicker 
-                          color={customPrimaryColor || '#3B82F6'} 
-                          onChange={(val) => handleCustomPrimaryChange(val)}
-                          title="自定义主色"
-                          isDarkBg={isDarkBg}
-                        />
+                      </div>
+
+                      {/* Custom Color Area */}
+                      <div className={`mt-2 p-4 rounded-2xl border ${isDarkBg ? 'bg-white/5 border-white/10' : 'bg-black/5 border-transparent'}`}>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-[10px] font-bold opacity-50 uppercase tracking-widest">自定义配色方案</span>
+                          <button 
+                            onClick={toggleColorLink}
+                            className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all ${
+                              isColorLinked 
+                                ? 'bg-rose-600/10 text-rose-600' 
+                                : isDarkBg ? 'bg-white/10 text-white' : 'bg-black/5 text-black'
+                            }`}
+                            title={isColorLinked ? "当前：联动调整" : "当前：独立调整"}
+                          >
+                            {isColorLinked ? <Link className="w-3.5 h-3.5" /> : <Link2Off className="w-3.5 h-3.5" />}
+                            <span className="text-[10px] font-bold">{isColorLinked ? '联动中' : '已断开'}</span>
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-6 justify-center">
+                          <div className="flex flex-col items-center gap-2">
+                             <ColorPicker 
+                              color={customPrimaryColor || '#3B82F6'} 
+                              onChange={(val) => handleCustomPrimaryChange(val)}
+                              title="月份 & 日期"
+                              isDarkBg={isDarkBg}
+                            />
+                            <span className="text-[9px] opacity-40 font-bold uppercase tracking-tighter">月份与日期</span>
+                          </div>
+
+                          {!isColorLinked && (
+                            <>
+                              <div className="w-px h-8 bg-black/10 dark:bg-white/10" />
+                              <div className="flex flex-col items-center gap-2">
+                                <ColorPicker 
+                                  color={customMutedColor || customPrimaryColor || '#3B82F6'} 
+                                  onChange={(val) => handleCustomMutedChange(val)}
+                                  title="引言 & 节日"
+                                  isDarkBg={isDarkBg}
+                                />
+                                <span className="text-[9px] opacity-40 font-bold uppercase tracking-tighter">金句与节日</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
