@@ -588,7 +588,7 @@ export default function App() {
     { id: 'vintage', name: '复古', class: 'bg-[#E9C46A] border-[#264653]' },
     { id: 'zen', name: '禅意', class: 'bg-[#F1F8E9] border-[#558B2F]' },
     { id: 'crimson', name: '赤金', class: 'bg-white border-[#e3b245]' },
-    { id: 'vanguard', name: '前卫', class: 'bg-black border-[#ff3d00]' },
+    { id: 'vanguard', name: '前卫', class: 'bg-[#130A19] border-[#CE93D8]' },
   ];
 
   const fonts: { id: DateFontType; name: string; value: string }[] = [
@@ -626,7 +626,7 @@ export default function App() {
       case 'vintage': return '#E76F51';
       case 'zen': return '#8BC34A';
       case 'crimson': return '#e3b245';
-      case 'vanguard': return '#ff3d00';
+      case 'vanguard': return '#CE93D8';
       default: return '#9CA3AF';
     }
   };
@@ -780,7 +780,7 @@ export default function App() {
   })();
   const currentQuoteFontValue = quoteFonts.find(f => f.id === quoteFont)?.value || 'var(--font-quote-serif)';
   
-  const isThemeDark = ['dark', 'technical'].includes(theme);
+  const isThemeDark = ['dark', 'technical', 'vanguard'].includes(theme);
   
   const hexToRgb = (hex: string): string => {
     if (!hex) return '0, 0, 0';
@@ -939,7 +939,56 @@ export default function App() {
   }, [bgPageValue, theme, scheme]);
 
   // Helper for dynamic button classes
-  const isDarkBg = ['dark', 'poster', 'technical'].includes(theme) || bgId === 'charcoal' || bgId === 'midnight';
+  const isDarkBg = useMemo(() => {
+    if (bgPageValue && bgPageValue.startsWith('#')) {
+      const hex = bgPageValue.slice(1);
+      if (hex.length === 3 || hex.length === 6) {
+        let r, g, b;
+        if (hex.length === 3) {
+          r = parseInt(hex[0] + hex[0], 16);
+          g = parseInt(hex[1] + hex[1], 16);
+          b = parseInt(hex[2] + hex[2], 16);
+        } else {
+          r = parseInt(hex.substring(0, 2), 16);
+          g = parseInt(hex.substring(2, 4), 16);
+          b = parseInt(hex.substring(4, 6), 16);
+        }
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 140; // Slightly higher threshold for better "dark" experience
+      }
+    }
+    return ['dark', 'technical', 'vanguard'].includes(theme) || ['charcoal', 'midnight', 'obsidian'].includes(bgId);
+  }, [bgPageValue, theme, bgId]);
+
+  // Semi-dynamic styling for the tear button
+  const tearButtonStyle = useMemo(() => {
+    let baseColor = '#e11d48'; // Default rose-600
+    let hoverColor = '#be123c'; // Default rose-700
+    let shadowColor = 'rgba(225, 29, 72, 0.4)';
+    
+    // Find current scheme configuration
+    const currentScheme = colorSchemes.find(s => s.id === scheme);
+    const mode = isDarkBg ? 'dark' : 'light';
+    const cfg = currentScheme?.[mode as keyof typeof currentScheme] as any || currentScheme?.light;
+    
+    if (cfg && cfg['--border-accent']) {
+      baseColor = cfg['--border-accent'];
+      hoverColor = baseColor; // Simplified for dynamic colors
+      shadowColor = `${baseColor}44`;
+    }
+
+    // Special cases for certain themes
+    if (theme === 'technical') {
+      baseColor = '#64FFDA';
+      shadowColor = 'rgba(100, 255, 218, 0.3)';
+    } else if (theme === 'vanguard') {
+      baseColor = '#000000';
+      shadowColor = 'rgba(0, 0, 0, 0.2)';
+    }
+
+    return { baseColor, hoverColor, shadowColor };
+  }, [scheme, theme, isDarkBg, colorSchemes]);
+
   const btnBaseClass = isDarkBg 
     ? 'bg-black/40 backdrop-blur-md text-white border-white/10 hover:bg-black/60' 
     : 'bg-white text-black border-gray-100 hover:bg-gray-50';
@@ -947,7 +996,7 @@ export default function App() {
     ? 'bg-black text-white border border-white/20 shadow-[0_0_20px_rgba(0,0,0,0.4)]'
     : 'bg-white text-black border border-gray-200 shadow-[0_10px_30px_rgba(0,0,0,0.1)]';
   const menuClass = isDarkBg
-    ? 'bg-neutral-900/80 text-white border-white/10'
+    ? 'bg-[#0A0A0A]/95 text-white border-white/10'
     : 'bg-white/80 text-black border-gray-200';
   const tabActiveClass = isDarkBg ? 'bg-white/20 text-white' : 'bg-white text-black shadow-sm';
   const itemHoverClass = isDarkBg ? 'hover:bg-white/10' : 'hover:bg-gray-100/50';
@@ -1234,7 +1283,11 @@ export default function App() {
             </div>
           )}
           
-          <div className={`absolute left-0 top-1/2 -translate-y-1/2 sidebar sidebar-left ${theme === 'classic' || theme === 'traditional' ? '-mt-[15px]' : ''} ${theme === 'vanguard' ? 'opacity-30 border-none text-[var(--color-primary)]' : ''}`} id="side-left">
+          <div 
+            className={`absolute left-0 top-1/2 -translate-y-1/2 sidebar sidebar-left ${theme === 'classic' || theme === 'traditional' ? '-mt-[15px]' : ''}`} 
+            id="side-left"
+            style={theme === 'vanguard' ? { color: 'var(--color-primary)', opacity: 1 } : {}}
+          >
             {calendarData.lunarDate}
           </div>
 
@@ -1267,7 +1320,10 @@ export default function App() {
                 <div className="absolute bottom-2 md:bottom-4 right-0 left-0 text-center animate-in slide-in-from-top-2 duration-500 flex flex-col items-center gap-1">
                   <div className="flex items-center gap-3">
                     {calendarData.festivals && (
-                      <span className={`text-[10px] font-black tracking-[4px] uppercase ${theme === 'bold' ? 'text-[var(--color-primary)]' : theme === 'vanguard' ? 'text-[var(--color-primary)] opacity-50' : 'opacity-60'}`}>
+                      <span 
+                        className={`text-[10px] font-black tracking-[4px] uppercase ${theme === 'bold' ? 'text-[var(--color-primary)]' : 'opacity-60'}`}
+                        style={theme === 'vanguard' ? { color: 'var(--color-primary)', opacity: 1 } : {}}
+                      >
                         {calendarData.festivals.split(' ')[0]}
                       </span>
                     )}
@@ -1282,7 +1338,11 @@ export default function App() {
             </>
           )}
 
-          <div className={`absolute right-0 top-1/2 -translate-y-1/2 sidebar sidebar-right ${theme === 'classic' || theme === 'traditional' ? '-mt-[15px]' : ''} ${theme === 'vanguard' ? 'opacity-30 border-none text-[var(--color-primary)]' : ''}`} id="side-right">
+          <div 
+            className={`absolute right-0 top-1/2 -translate-y-1/2 sidebar sidebar-right ${theme === 'classic' || theme === 'traditional' ? '-mt-[15px]' : ''}`} 
+            id="side-right"
+            style={theme === 'vanguard' ? { color: 'var(--color-primary)', opacity: 1 } : {}}
+          >
             {calendarData.lunarGanzhi}
           </div>
         </section>
@@ -1295,17 +1355,88 @@ export default function App() {
           >
             {calendarData.quote.text}
           </div>
-          <div className={`quote-meta text-xs text-[var(--color-muted)] italic ${theme === 'classic' ? 'text-center' : 'text-right'}`} id="quote-meta">
+          <div 
+            className={`quote-meta text-xs italic ${theme === 'classic' ? 'text-center' : 'text-right'}`} 
+            id="quote-meta"
+            style={theme === 'vanguard' ? { color: 'var(--color-primary)', opacity: 1 } : {}}
+          >
             —— {calendarData.quote.author} {calendarData.quote.book ? `《${calendarData.quote.book}》` : ''}
           </div>
         </section>
 
-        <footer className="mt-auto pt-3 md:pt-5 flex justify-between items-end border-t border-current/40" id="footer-main">
+        <footer className="mt-auto pt-3 md:pt-5 flex justify-between items-center border-t border-current/40 relative" id="footer-main">
           <div className="text-xs font-black tracking-[3px] uppercase" id="brand">
             {footerText}
           </div>
-          <div className="text-right flex flex-col items-end gap-0.5" id="footer-day-year">
-            <div className="text-[11px] text-[var(--color-muted)]">{calendarData.year}年</div>
+
+          {/* 手撕按钮 - 挪到中间 */}
+          {isManualMode && (() => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const cur = new Date(currentDate);
+            cur.setHours(0, 0, 0, 0);
+            const diff = Math.ceil((today.getTime() - cur.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (cur >= today) return null;
+
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="absolute left-1/2 -translate-x-1/2 bottom-3 md:bottom-5 z-20 -translate-y-[2px]"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleTear}
+                  disabled={isTearing}
+                  className="flex items-center gap-3 pl-6 pr-2 py-2 rounded-full shadow-lg transition-all group relative border border-white/20 backdrop-blur-md"
+                  style={{ 
+                    backgroundColor: tearButtonStyle.baseColor,
+                    color: (theme === 'technical' || theme === 'vanguard') ? '#121212' : 'white',
+                    boxShadow: `0 8px 30px ${tearButtonStyle.shadowColor}`
+                  }}
+                  title="撕掉当前页，开启新的一天"
+                >
+                  <div className="flex flex-col items-center leading-none">
+                    <span className="text-[15px] md:text-[16px] font-black uppercase mb-0.5">撕掉过去</span>
+                    <span className="text-[10px] font-black opacity-80 uppercase tracking-tight">下拽或点击</span>
+                  </div>
+
+                  <div 
+                    className="w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 shrink-0"
+                    style={{ backgroundColor: (theme === 'technical' || theme === 'vanguard') ? '#121212' : '#FACC15' }}
+                  >
+                    <span 
+                      className="text-2xl md:text-3xl font-black leading-none"
+                      style={{ color: (theme === 'technical' || theme === 'vanguard') ? tearButtonStyle.baseColor : tearButtonStyle.baseColor }}
+                    >{diff}</span>
+                  </div>
+
+                  {/* Highlight/Pulse */}
+                  <div className="absolute -top-1 -right-1">
+                    <div 
+                      className="w-3 h-3 rounded-full animate-ping opacity-75" 
+                      style={{ backgroundColor: (theme === 'technical' || theme === 'vanguard') ? 'white' : '#FACC15' }}
+                    />
+                    <div 
+                      className="absolute inset-0 w-3 h-3 rounded-full border border-black/10 shadow-sm" 
+                      style={{ backgroundColor: (theme === 'technical' || theme === 'vanguard') ? 'white' : '#FACC15' }}
+                    />
+                  </div>
+                </motion.button>
+              </motion.div>
+            );
+          })()}
+
+          <div className="text-right flex flex-col items-end gap-0.5 footer-day-year" id="footer-day-year">
+            <div 
+              className={`text-[11px] ${theme === 'vanguard' ? 'font-bold' : 'text-[var(--color-muted)]'}`}
+              style={theme === 'vanguard' ? { color: 'var(--color-primary)', opacity: 1 } : {}}
+            >
+              {calendarData.year}年
+            </div>
             <div className="text-xs font-bold">{calendarData.weekday}</div>
           </div>
         </footer>
@@ -1537,35 +1668,6 @@ export default function App() {
             </button>
           </div>
 
-          {isManualMode && (() => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const cur = new Date(currentDate);
-            cur.setHours(0, 0, 0, 0);
-            return cur < today;
-          })() && (
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleTear}
-              disabled={isTearing}
-              className={`w-12 h-12 rounded-full flex flex-col items-center justify-center shadow-xl border border-rose-600/30 bg-rose-600 text-white relative group overflow-hidden`}
-              title="撕掉当前页"
-            >
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <motion.div
-                animate={isTearing ? { rotate: 360 } : {}}
-                transition={{ duration: 1, repeat: isTearing ? Infinity : 0, ease: "linear" }}
-              >
-                <RotateCcw size={18} />
-              </motion.div>
-              <span className="text-[9px] font-black mt-0.5 uppercase tracking-tighter">撕掉</span>
-              
-              {/* Notification pulse */}
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full animate-ping" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full" />
-            </motion.button>
-          )}
 
           {/* Date Picker Modal */}
           <AnimatePresence>
