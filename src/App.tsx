@@ -69,8 +69,6 @@ export default function App() {
     { id: 'green', color: '#F0FDF4', label: '浅艾' },
     { id: 'oat', color: '#F4F1EA', label: '燕麦' },
     { id: 'wheat', color: '#FBF8F1', label: '麦香' },
-    { id: 'glacier', color: '#F0FDFA', label: '冰川' },
-    { id: 'shell', color: '#FFFBF0', label: '贝耳' },
   ];
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
@@ -293,6 +291,29 @@ export default function App() {
   const handleSchemeChange = (newScheme: string) => {
     setScheme(newScheme);
     localStorage.setItem('calendar-scheme', newScheme);
+    
+    // Update custom color inputs to match the preset
+    const schemeData = colorSchemes.find(s => s.id === newScheme);
+    if (schemeData) {
+      const colors = isThemeDark ? schemeData.dark : schemeData.light;
+      if (colors) {
+        if (colors['--color-primary'] || colors['--border-accent']) {
+          const mainColor = colors['--color-primary'] || colors['--border-accent'];
+          setCustomPrimaryColor(mainColor);
+          localStorage.setItem('calendar-custom-primary', mainColor);
+        }
+        if (colors['--color-text']) {
+          setCustomMutedColor(colors['--color-text']);
+          localStorage.setItem('calendar-custom-muted', colors['--color-text']);
+        }
+      }
+    } else if (newScheme === 'original') {
+      const defaultColor = getThemeDefaultColor(theme);
+      setCustomPrimaryColor(defaultColor);
+      setCustomMutedColor(defaultColor);
+      localStorage.setItem('calendar-custom-primary', defaultColor);
+      localStorage.setItem('calendar-custom-muted', defaultColor);
+    }
   };
 
   const handleCustomPrimaryChange = (color: string) => {
@@ -327,6 +348,13 @@ export default function App() {
   const handleBgChange = (newBg: string) => {
     setBgId(newBg);
     localStorage.setItem('calendar-bg-id', newBg);
+    
+    // Update custom color input to match preset
+    const bgData = backgrounds.find(b => b.id === newBg);
+    if (bgData && bgData.color !== 'transparent') {
+      setCustomAppBgColor(bgData.color);
+      localStorage.setItem('calendar-custom-app-bg', bgData.color);
+    }
   };
 
   const handleFooterTextChange = (text: string) => {
@@ -405,7 +433,7 @@ export default function App() {
   const handleBorderColorChange = (newColor: string, isCustom = false) => {
     setBorderColor(newColor);
     setIsCustomBorder(isCustom);
-    if (isCustom) setCustomBorderColor(newColor);
+    setCustomBorderColor(newColor);
     localStorage.setItem('calendar-border-color', newColor);
     localStorage.setItem('calendar-border-custom', String(isCustom));
   };
@@ -413,8 +441,10 @@ export default function App() {
   const handleCardBgChange = (newVal: string) => {
     setCardBg(newVal);
     setIsCustomCardBg(false);
+    setCustomCardBgColor(newVal);
     localStorage.setItem('calendar-card-bg', newVal);
     localStorage.setItem('calendar-card-custom', 'false');
+    localStorage.setItem('calendar-custom-card-bg', newVal);
   };
 
   const handleCustomCardBgChange = (color: string) => {
@@ -552,6 +582,7 @@ export default function App() {
       lunarGanzhi: `${lunarYearGanzhi}年${lunarMonthGanzhi}月${lunarDayGanzhi}日`,
       festivals: festivals.join(' '),
       solarTerm: solarTerm || '',
+      lunarDayGanzhi,
       quote,
       dayYi,
       dayJi
@@ -658,6 +689,24 @@ export default function App() {
       case 'crimson': return '#e3b245';
       case 'vanguard': return '#CE93D8';
       default: return '#9CA3AF';
+    }
+  };
+
+  const getThemeDefaultBgColor = (t: ThemeType) => {
+    switch (t) {
+      case 'bold': return '#E5E5E1';
+      case 'classic': return '#F5F3F0';
+      case 'dark': return '#121212';
+      case 'warm': return '#EDE0D4';
+      case 'technical': return '#0A192F';
+      case 'poster': return '#1A1A1A';
+      case 'traditional': return '#F4EBE2';
+      case 'editorial': return '#F8F8F8';
+      case 'vintage': return '#E76F51';
+      case 'zen': return '#DCEDC8';
+      case 'crimson': return '#F5F5F0';
+      case 'vanguard': return '#130A19';
+      default: return '#F5F5F0';
     }
   };
 
@@ -799,9 +848,6 @@ export default function App() {
     { id: 'silk', name: '蚕丝', color: '#F8F7F3', preview: 'bg-[#F8F7F3]' },
     { id: 'cloud', name: '云中', color: '#E8EEF2', preview: 'bg-[#E8EEF2]' },
     { id: 'dust', name: '烟粉', color: '#F4E7E7', preview: 'bg-[#F4E7E7]' },
-    { id: 'pine', name: '松针', color: '#DAE2D8', preview: 'bg-[#DAE2D8]' },
-    { id: 'mint', name: '薄荷', color: '#E0F2F1', preview: 'bg-[#E0F2F1]' },
-    { id: 'lavender', name: '薰衣草', color: '#F3E5F5', preview: 'bg-[#F3E5F5]' },
   ];
 
   const currentFontValue = (() => {
@@ -1227,7 +1273,7 @@ export default function App() {
 
         <section className="flex-1 relative flex items-center justify-center date-section">
           {/* Theme-specific Festival/Solar Term Layouts */}
-          {(calendarData.festivals || calendarData.solarTerm) && theme !== 'classic' && (
+          {(calendarData.festivals || calendarData.solarTerm || theme === 'vanguard') && theme !== 'classic' && (
             <div className="absolute inset-0 pointer-events-none select-none" id="festival-layer">
               {/* 1. Traditional/Vintage: Red Stamp Style */}
               {(theme === 'traditional' || theme === 'vintage') && (
@@ -1326,8 +1372,8 @@ export default function App() {
               {/* 5. Vanguard: Bold Overlapping Text */}
               {theme === 'vanguard' && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
-                  <span className="text-[200px] font-black tracking-tighter break-all leading-none text-center text-[var(--color-text)]">
-                    {calendarData.festivals ? calendarData.festivals.split(' ')[0] : calendarData.solarTerm}
+                  <span className="text-[180px] font-black tracking-tighter break-all leading-none text-center text-[var(--color-text)]">
+                    {calendarData.festivals ? calendarData.festivals.split(' ')[0] : (calendarData.solarTerm || calendarData.lunarDayGanzhi)}
                   </span>
                 </div>
               )}
@@ -1987,17 +2033,24 @@ export default function App() {
                   {activeTab === 'scheme' && (
                     <div className="flex flex-col gap-5 pt-3 pb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                       <div className="grid grid-cols-6 gap-3 gap-y-5 px-1">
-                          {colorSchemes.map((s) => (
-                            <button
-                              key={s.id}
-                              onClick={() => handleSchemeChange(s.id)}
-                              className={`w-7 h-7 rounded-full border transition-all flex items-center justify-center mx-auto ${
-                                scheme === s.id ? 'ring-2 ring-rose-600 border-rose-600' : `hover:scale-110 ${isDarkBg ? 'border-white/10' : 'border-black/5'} opacity-80 hover:opacity-100`
-                              } ${s.id === 'original' ? '' : s.bg}`}
-                              style={s.id === 'original' ? { backgroundColor: getThemeDefaultColor(theme) } : {}}
-                              title={s.name}
-                            />
-                          ))}
+                          {colorSchemes.map((s) => {
+                            const currentPalette = isThemeDark ? s.dark : s.light;
+                            const actualColor = s.id === 'original' 
+                              ? getThemeDefaultColor(theme) 
+                              : (currentPalette?.['--color-primary'] || currentPalette?.['--border-accent'] || '#CCCCCC');
+                            
+                            return (
+                              <button
+                                key={s.id}
+                                onClick={() => handleSchemeChange(s.id)}
+                                className={`w-7 h-7 rounded-full border transition-all flex items-center justify-center mx-auto ${
+                                  scheme === s.id ? 'ring-2 ring-rose-600 border-rose-600' : `hover:scale-110 ${isDarkBg ? 'border-white/10' : 'border-black/5'} opacity-80 hover:opacity-100`
+                                }`}
+                                style={{ backgroundColor: actualColor }}
+                                title={s.name}
+                              />
+                            );
+                          })}
                       </div>
 
                       {/* Custom Color Area */}
@@ -2025,6 +2078,7 @@ export default function App() {
                               onChange={(val) => handleCustomPrimaryChange(val)}
                               title="月份 & 日期"
                               isDarkBg={isDarkBg}
+                              triggerShape="pill"
                             />
                             <span className="text-[9px] opacity-40 font-bold uppercase tracking-tighter">月份与日期</span>
                           </div>
@@ -2038,6 +2092,7 @@ export default function App() {
                                   onChange={(val) => handleCustomMutedChange(val)}
                                   title="引言 & 节日"
                                   isDarkBg={isDarkBg}
+                                  triggerShape="pill"
                                 />
                                 <span className="text-[9px] opacity-40 font-bold uppercase tracking-tighter">金句与节日</span>
                               </div>
@@ -2052,22 +2107,26 @@ export default function App() {
                   {activeTab === 'background' && (
                     <div className="flex flex-col gap-4 pt-3 pb-4">
                       <div className="grid grid-cols-6 gap-3 gap-y-5 px-1">
-                        {backgrounds.map((b) => (
-                          <button
-                            key={b.id}
-                            onClick={() => handleBgChange(b.id)}
-                            className={`w-7 h-7 rounded-full border transition-all flex items-center justify-center mx-auto ${
-                              bgId === b.id ? 'ring-2 ring-rose-600 border-rose-600' : 'hover:scale-110 border-black/5 opacity-80 hover:opacity-100'
-                            } ${b.preview}`}
-                            title={b.name}
-                            style={{ backgroundColor: b.color }}
-                          />
-                        ))}
+                        {backgrounds.map((b) => {
+                          const actualBgColor = b.id === 'default' ? getThemeDefaultBgColor(theme) : b.color;
+                          return (
+                            <button
+                              key={b.id}
+                              onClick={() => handleBgChange(b.id)}
+                              className={`w-7 h-7 rounded-full border transition-all flex items-center justify-center mx-auto ${
+                                bgId === b.id ? 'ring-2 ring-rose-600 border-rose-600' : 'hover:scale-110 border-black/5 opacity-80 hover:opacity-100'
+                              } ${b.preview}`}
+                              title={b.name}
+                              style={{ backgroundColor: actualBgColor === 'transparent' ? 'transparent' : actualBgColor }}
+                            />
+                          );
+                        })}
                         <ColorPicker 
                           color={customAppBgColor || '#F5F5F5'} 
                           onChange={(val) => handleCustomAppBgChange(val)}
                           title="自定义背景"
                           isDarkBg={isDarkBg}
+                          triggerShape="pill"
                         />
                       </div>
                     </div>
@@ -2147,6 +2206,7 @@ export default function App() {
                              onChange={(val) => handleCustomCardBgChange(val)}
                              title="自定义卡片背景"
                              isDarkBg={isDarkBg}
+                             triggerShape="pill"
                            />
                          </div>
                        </div>
@@ -2173,7 +2233,7 @@ export default function App() {
                    {activeTab === 'border' && (
                      <div className="flex flex-col gap-4 pt-3 pb-4">
                         <div className="grid grid-cols-6 gap-3 gap-y-5 px-1">
-                          {['#E5E7EB', '#D1D5DB', '#9CA3AF', '#4B5563', '#1F2937', '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#FFFFFF'].map(c => (
+                          {['#E5E7EB', '#9CA3AF', '#4B5563', '#1F2937', '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#FFFFFF'].map(c => (
                             <button
                               key={c}
                               onClick={() => handleBorderColorChange(c)}
@@ -2188,6 +2248,7 @@ export default function App() {
                             onChange={(val) => handleBorderColorChange(val, true)}
                             title="自定义边框颜色"
                             isDarkBg={isDarkBg}
+                            triggerShape="pill"
                           />
                         </div>
 

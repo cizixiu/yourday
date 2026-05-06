@@ -9,6 +9,7 @@ interface ColorPickerProps {
   title?: string;
   presets?: string[];
   isDarkBg?: boolean;
+  triggerShape?: 'circle' | 'pill';
 }
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({ 
@@ -19,7 +20,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', 
     '#000000', '#4B5563', '#FFFFFF'
   ],
-  isDarkBg = false
+  isDarkBg = false,
+  triggerShape = 'circle'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -68,22 +70,49 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     }
   };
 
+  const getContrastColor = (hex: string) => {
+    if (!hex || hex === 'transparent') return isDarkBg ? '#FFFFFF' : '#000000';
+    const cleanHex = hex.startsWith('#') ? hex : `#${hex}`;
+    if (cleanHex.length !== 7) return '#FFFFFF';
+    const r = parseInt(cleanHex.slice(1, 3), 16);
+    const g = parseInt(cleanHex.slice(3, 5), 16);
+    const b = parseInt(cleanHex.slice(5, 7), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#000000' : '#FFFFFF';
+  };
+
   return (
-    <div className="relative inline-block">
+    <div className={`relative inline-block ${triggerShape === 'pill' ? 'col-span-2' : ''}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-7 h-7 rounded-full border transition-all flex items-center justify-center cursor-pointer shadow-sm ${
-          isOpen ? 'ring-2 ring-rose-600 ring-offset-1 border-transparent' : 'border-black/10 hover:scale-125'
+        className={`h-7 transition-all flex items-center justify-center cursor-pointer shadow-sm ${
+          triggerShape === 'pill' ? 'w-[68px] rounded-full' : 'w-7 rounded-full'
+        } ${
+          isOpen ? 'ring-2 ring-rose-600 ring-offset-1 border-transparent' : 'border-black/10 hover:scale-105'
         }`}
+        style={{ 
+          backgroundColor: color || '#FFFFFF',
+          border: triggerShape === 'pill' ? 'none' : undefined
+        }}
         title={title}
       >
         <div 
-          className="w-4 h-4 rounded-full" 
-          style={{ 
+          className="flex items-center justify-center"
+          style={triggerShape === 'pill' ? {} : { 
+            width: '16px',
+            height: '16px',
+            borderRadius: '9999px',
             backgroundColor: color || '#FFFFFF',
             boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.1)"
           }} 
-        />
+        >
+          {triggerShape === 'pill' && (
+            <Pipette 
+              className="w-3.5 h-3.5" 
+              style={{ color: getContrastColor(color || '#FFFFFF') }}
+            />
+          )}
+        </div>
       </button>
 
       <AnimatePresence>
