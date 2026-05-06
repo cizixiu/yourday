@@ -59,6 +59,11 @@ export default function App() {
   const [tearAnimation, setTearAnimation] = useState<TearAnimationType>('classic');
   const [isTearing, setIsTearing] = useState(false);
 
+  const [isShadowOverlayEnabled, setIsShadowOverlayEnabled] = useState(false);
+  const [shadowOverlayUrl, setShadowOverlayUrl] = useState('https://pic1.imgdb.cn/item/69fb18da4498ed47aaabf1ef.png');
+  const [shadowOpacity, setShadowOpacity] = useState(0.5);
+  const [shadowBlur, setShadowBlur] = useState(10);
+
   const cardBgs = [
     { id: 'white', color: '#FFFFFF', label: '纯白' },
     { id: 'paper', color: '#FDFCF8', label: '纸张' },
@@ -73,7 +78,7 @@ export default function App() {
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'theme' | 'font' | 'quote' | 'scheme' | 'background' | 'card' | 'border' | 'personal' | 'calendar' | 'visibility' | 'system'>('theme');
+  const [activeTab, setActiveTab] = useState<'theme' | 'font' | 'quote' | 'scheme' | 'background' | 'card' | 'border' | 'personal' | 'calendar' | 'visibility' | 'system' | 'shadow'>('theme');
   const [randomSeed, setRandomSeed] = useState(0);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
@@ -195,6 +200,18 @@ export default function App() {
 
     const savedTearAnimation = localStorage.getItem('calendar-tear-animation') as TearAnimationType;
     if (savedTearAnimation) setTearAnimation(savedTearAnimation);
+
+    const savedShadowOverlayEnabled = localStorage.getItem('calendar-shadow-overlay-enabled') === 'true';
+    setIsShadowOverlayEnabled(savedShadowOverlayEnabled);
+
+    const savedShadowOverlayUrl = localStorage.getItem('calendar-shadow-overlay-url');
+    if (savedShadowOverlayUrl) setShadowOverlayUrl(savedShadowOverlayUrl);
+
+    const savedShadowOpacity = localStorage.getItem('calendar-shadow-opacity');
+    if (savedShadowOpacity) setShadowOpacity(parseFloat(savedShadowOpacity));
+
+    const savedShadowBlur = localStorage.getItem('calendar-shadow-blur');
+    if (savedShadowBlur) setShadowBlur(parseFloat(savedShadowBlur));
     
     // If manual mode, try to load last valid date
     if (savedManualMode) {
@@ -213,6 +230,26 @@ export default function App() {
       }
     }
   }, []);
+
+  const handleShadowOverlayToggle = (val: boolean) => {
+    setIsShadowOverlayEnabled(val);
+    localStorage.setItem('calendar-shadow-overlay-enabled', String(val));
+  };
+
+  const handleShadowOpacityChange = (val: number) => {
+    setShadowOpacity(val);
+    localStorage.setItem('calendar-shadow-opacity', String(val));
+  };
+
+  const handleShadowBlurChange = (val: number) => {
+    setShadowBlur(val);
+    localStorage.setItem('calendar-shadow-blur', String(val));
+  };
+
+  const handleShadowUrlChange = (url: string) => {
+    setShadowOverlayUrl(url);
+    localStorage.setItem('calendar-shadow-overlay-url', url);
+  };
 
   const handleManualModeToggle = (val: boolean) => {
     setIsManualMode(val);
@@ -487,6 +524,10 @@ export default function App() {
     setTearAnimation('classic');
     setHasShadow(true);
     setFooterText('Your Day');
+    setIsShadowOverlayEnabled(false);
+    setShadowOverlayUrl('https://pic1.imgdb.cn/item/69fb18da4498ed47aaabf1ef.png');
+    setShadowOpacity(0.5);
+    setShadowBlur(10);
     
     // Clear custom color inputs
     setCustomPrimaryColor('');
@@ -521,7 +562,11 @@ export default function App() {
       'calendar-show-suitable',
       'calendar-show-avoid',
       'calendar-tear-animation',
-      'calendar-last-date'
+      'calendar-last-date',
+      'calendar-shadow-overlay-enabled',
+      'calendar-shadow-overlay-url',
+      'calendar-shadow-opacity',
+      'calendar-shadow-blur'
     ];
     overrideKeys.forEach(key => localStorage.removeItem(key));
     
@@ -1577,6 +1622,27 @@ export default function App() {
             }} />
           </>
         )}
+
+        {/* Shadow Overlay */}
+        {isShadowOverlayEnabled && (
+          <div 
+            className="absolute inset-0 z-40 pointer-events-none overflow-hidden" 
+            style={{ borderRadius: 'inherit' }}
+          >
+            <img 
+              src={shadowOverlayUrl} 
+              alt="shadow-overlay" 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover max-w-none"
+              style={{ 
+                opacity: shadowOpacity, 
+                filter: shadowBlur > 0 ? `blur(${shadowBlur}px)` : 'none',
+                width: `calc(100% + ${shadowBlur * 3}px)`,
+                height: `calc(100% + ${shadowBlur * 3}px)`,
+              }}
+              referrerPolicy="no-referrer"
+            />
+          </div>
+        )}
       </motion.main>
 
       {/* Global Download Progress Overlay (Circular Design) */}
@@ -1971,6 +2037,12 @@ export default function App() {
                       边框
                     </button>
                     <button 
+                      onClick={() => setActiveTab('shadow')}
+                      className={`text-[11px] py-1.5 rounded-xl transition-all ${activeTab === 'shadow' ? tabActiveClass : 'opacity-40'}`}
+                    >
+                      光影
+                    </button>
+                    <button 
                       onClick={() => setActiveTab('font')}
                       className={`text-[11px] py-1.5 rounded-xl transition-all ${activeTab === 'font' ? tabActiveClass : 'opacity-40'}`}
                     >
@@ -2281,6 +2353,94 @@ export default function App() {
                               />
                             </div>
                           </div>
+                     </div>
+                   )}
+
+                   {/* Shadow Tab */}
+                   {activeTab === 'shadow' && (
+                     <div className="flex flex-col gap-4 pt-3 pb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                       <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl border ${isDarkBg ? 'bg-white/5 border-white/5' : 'bg-black/5 border-transparent'}`}>
+                         <div className="flex items-center gap-2">
+                           <Layers className={`w-3.5 h-3.5 ${isShadowOverlayEnabled ? 'text-rose-600' : 'opacity-40'}`} />
+                           <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest">开启光影效果</span>
+                         </div>
+                         <button 
+                           onClick={() => handleShadowOverlayToggle(!isShadowOverlayEnabled)}
+                           className={`w-8 h-4 rounded-full relative transition-colors ${isShadowOverlayEnabled ? 'bg-rose-600' : 'bg-gray-400'}`}
+                         >
+                           <motion.div 
+                             animate={{ x: isShadowOverlayEnabled ? 18 : 2 }}
+                             className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm"
+                           />
+                         </button>
+                       </div>
+
+                       <div className="space-y-3 px-1">
+                         <div className="text-[10px] font-bold opacity-40 uppercase tracking-wider mb-2">选择样式</div>
+                         <div className="grid grid-cols-3 gap-2">
+                           {[
+                             { id: 'shadow1', url: 'https://pic1.imgdb.cn/item/69fb18da4498ed47aaabf1ef.png' },
+                             { id: 'shadow2', url: 'https://pic1.imgdb.cn/item/69fb31674498ed47aaac0d59.png' },
+                             { id: 'shadow3', url: 'https://pic1.imgdb.cn/item/69fb31674498ed47aaac0d5b.png' },
+                             { id: 'shadow4', url: 'https://pic1.imgdb.cn/item/69fb31674498ed47aaac0d5a.png' },
+                             { id: 'shadow5', url: 'https://pic1.imgdb.cn/item/69fb31674498ed47aaac0d58.png' },
+                             { id: 'shadow6', url: 'https://pic1.imgdb.cn/item/69fb31664498ed47aaac0d56.png' },
+                           ].map((s, idx) => (
+                             <button
+                               key={idx}
+                               onClick={() => s.url && shadowOverlayUrl !== s.url && handleShadowUrlChange(s.url)}
+                               className={`h-16 rounded-xl border-2 transition-all flex items-center justify-center relative overflow-hidden ${
+                                 shadowOverlayUrl === s.url && s.url
+                                   ? 'border-rose-600 shadow-md scale-105' 
+                                   : `border-transparent ${isDarkBg ? 'bg-white/5' : 'bg-black/5'} opacity-80 hover:opacity-100 hover:scale-105`
+                               }`}
+                             >
+                               {s.url ? (
+                                 <img src={s.url} alt={`shadow-${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                               ) : (
+                                 <span className="text-[10px] opacity-30 font-bold uppercase">待增加</span>
+                               )}
+                               {shadowOverlayUrl === s.url && s.url && (
+                                 <div className="absolute top-1 right-1 bg-rose-600 rounded-full p-0.5">
+                                   <Check className="w-2 h-2 text-white" />
+                                 </div>
+                               )}
+                             </button>
+                           ))}
+                         </div>
+                       </div>
+
+                       <div className="space-y-4 pt-2 px-1">
+                         <div className="flex flex-col gap-2">
+                           <div className="flex items-center justify-between">
+                             <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">透明度 ({Math.round(shadowOpacity * 100)}%)</span>
+                           </div>
+                           <input 
+                             type="range" 
+                             min="0" 
+                             max="1" 
+                             step="0.01"
+                             value={shadowOpacity} 
+                             onChange={(e) => handleShadowOpacityChange(parseFloat(e.target.value))}
+                             className="w-full h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-rose-600"
+                           />
+                         </div>
+
+                         <div className="flex flex-col gap-2">
+                           <div className="flex items-center justify-between">
+                             <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">模糊程度 ({shadowBlur}px)</span>
+                           </div>
+                           <input 
+                             type="range" 
+                             min="0" 
+                             max="20" 
+                             step="1"
+                             value={shadowBlur} 
+                             onChange={(e) => handleShadowBlurChange(parseInt(e.target.value))}
+                             className="w-full h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-rose-600"
+                           />
+                         </div>
+                       </div>
                      </div>
                    )}
 
