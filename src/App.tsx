@@ -1177,15 +1177,15 @@ export default function App() {
       >
         {/* Layered pages background for depth - improved for realistic look */}
         <div 
-          className="absolute inset-0 -z-10 translate-y-[2px] scale-[0.998] shadow-sm opacity-70 transition-colors border-b border-black/5" 
+          className="absolute inset-0 -z-10 translate-y-[2px] scale-[0.998] shadow-sm opacity-70 transition-colors duration-500 border-b border-black/5" 
           style={{ backgroundColor: cardBg || 'var(--bg-card)', borderRadius: 'inherit' }} 
         />
         <div 
-          className="absolute inset-0 -z-20 translate-y-[4px] scale-[0.996] shadow-sm opacity-50 transition-colors border-b border-black/5" 
+          className="absolute inset-0 -z-20 translate-y-[4px] scale-[0.996] shadow-sm opacity-50 transition-colors duration-500 border-b border-black/5" 
           style={{ backgroundColor: cardBg || 'var(--bg-card)', borderRadius: 'inherit' }} 
         />
         <div 
-          className="absolute inset-0 -z-30 translate-y-[6px] scale-[0.994] shadow-sm opacity-30 transition-colors border-b border-black/5" 
+          className="absolute inset-0 -z-30 translate-y-[6px] scale-[0.994] shadow-sm opacity-30 transition-colors duration-500 border-b border-black/5" 
           style={{ backgroundColor: cardBg || 'var(--bg-card)', borderRadius: 'inherit' }} 
         />
         
@@ -1198,9 +1198,11 @@ export default function App() {
               y: 0, 
               rotateX: 0, 
               scale: 1,
+              backgroundColor: 'transparent',
               transition: { type: 'spring', damping: 20, stiffness: 100 }
             }}
             exit={(() => {
+              const exitBg = { backgroundColor: cardBg || 'var(--bg-card)' };
               switch (tearAnimation) {
                 case 'slide-left':
                   return {
@@ -1212,6 +1214,7 @@ export default function App() {
                     filter: ['blur(0px)', 'blur(2px)', 'blur(10px)'],
                     scale: [1, 1.02, 0.9],
                     transformOrigin: 'top right',
+                    ...exitBg,
                     transition: { duration: 1.8, times: [0, 0.4, 1], ease: [0.4, 0, 0.2, 1] }
                   };
                 case 'float':
@@ -1223,6 +1226,7 @@ export default function App() {
                     rotateY: [0, 20, 45],
                     scale: [1, 1.1, 1.2],
                     filter: ['blur(0px)', 'blur(4px)', 'blur(12px)'],
+                    ...exitBg,
                     transition: { duration: 2.5, ease: "easeOut" }
                   };
                 case 'zoom':
@@ -1233,6 +1237,7 @@ export default function App() {
                     rotateX: [0, 45, 90],
                     y: [0, 100, 500],
                     filter: ['blur(0px)', 'blur(4px)', 'blur(20px)'],
+                    ...exitBg,
                     transition: { duration: 1.5, times: [0, 0.5, 1], ease: "backIn" }
                   };
                 default: // classic
@@ -1246,6 +1251,7 @@ export default function App() {
                     filter: ['blur(0px)', 'blur(2px)', 'blur(8px)'],
                     scale: [1, 1.05, 0.8],
                     transformOrigin: 'top center',
+                    ...exitBg,
                     transition: { 
                       duration: 2.2, 
                       times: [0, 0.8, 1],
@@ -1268,11 +1274,17 @@ export default function App() {
                 handleTear();
               }
             }}
+            onDragStart={() => {
+              // Ensure background is visible during drag
+              const el = document.getElementById('calendar-info-page');
+              if (el) el.style.backgroundColor = cardBg || 'var(--bg-card)';
+            }}
+            id="calendar-info-page"
             style={{ 
-              backgroundColor: cardBg || 'var(--bg-card)',
+              backgroundColor: isTearing ? (cardBg || 'var(--bg-card)') : 'transparent',
               borderRadius: 'inherit'
             }}
-            className="flex flex-col flex-1 h-full w-full relative z-10"
+            className="flex flex-col flex-1 h-full w-full relative z-10 transition-colors duration-500"
           >
             <header className="flex justify-between items-start mb-5" id="header">
           <div className="month-box" id="header-month">
