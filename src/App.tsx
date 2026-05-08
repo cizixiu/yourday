@@ -1193,7 +1193,7 @@ export default function App() {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className={`calendar-container theme-${theme} w-full max-w-[560px] min-h-[500px] md:aspect-[3/4] border relative p-7 md:p-12 ${dayStyle === 'shadow' ? '' : 'overflow-hidden'} select-none flex flex-col transition-all duration-500 ${hasShadow ? 'shadow-[0_40px_100px_rgba(0,0,0,0.12)]' : 'shadow-none'}`}
+        className={`calendar-container theme-${theme} w-full max-w-[560px] min-h-[500px] md:aspect-[3/4] border relative p-7 md:p-12 ${dayStyle === 'shadow' ? '' : 'overflow-hidden'} select-none flex flex-col transition-all duration-500 ${hasShadow ? 'shadow-[0_40px_100px_rgba(0,0,0,0.12)]' : 'shadow-none'} ${themes.find(t => t.id === theme)?.class || ''}`}
         id="calendar-container"
         style={{ 
           '--dynamic-font': currentFontValue,
@@ -1367,12 +1367,12 @@ export default function App() {
           {theme === 'neo-traditional' && (
             <header className="flex flex-col items-center mb-0 px-2" id="neo-header">
               <div 
-                className="text-[2.8rem] font-serif font-black tracking-tighter text-[var(--color-text)] mb-0 leading-none"
-                style={{ fontFamily: '"Abril Fatface", serif' }}
+                className="text-[2.8rem] font-serif font-black tracking-tighter mb-0 leading-none"
+                style={{ fontFamily: '"Abril Fatface", serif', color: primaryColor }}
               >
                 {calendarData.monthNameEn}
               </div>
-              <div className="w-full flex items-center gap-1 mb-2 font-serif font-black opacity-80 text-[var(--color-text)]">
+              <div className="w-full flex items-center gap-1 mb-2 font-serif font-black opacity-80" style={{ color: 'var(--color-text)' }}>
                 <div className="flex-1 border-t border-dotted border-current opacity-30" />
                 <span 
                   className="text-[1.4rem] tracking-widest pt-1"
@@ -1382,6 +1382,12 @@ export default function App() {
                 </span>
                 <div className="flex-1 border-t border-dotted border-current opacity-30" />
               </div>
+
+              {(calendarData.festivals || calendarData.solarTerm) && (
+                <div className="mt-1 text-[0.95rem] font-medium tracking-[2px] opacity-70 text-[var(--color-text)] transition-colors duration-500">
+                  {calendarData.festivals ? calendarData.festivals.split(' ')[0] : calendarData.solarTerm}
+                </div>
+              )}
             </header>
           )}
 
@@ -1395,8 +1401,8 @@ export default function App() {
                 <div className="absolute right-4 top-[1px] flex flex-col gap-2 z-10">
                   {calendarData.festivals && (
                     <div className="transform rotate-[21deg] flex items-center justify-center">
-                      <div className="border-2 p-0.5 rounded-sm flex items-center justify-center min-w-[32px] min-h-[32px]" style={{ borderColor: primaryColor, color: primaryColor }}>
-                        <div className="border px-1 py-1 text-[10px] font-serif font-black leading-tight flex flex-col items-center" style={{ borderColor: primaryColor }}>
+                      <div className="border-2 p-0.5 rounded-sm flex items-center justify-center min-w-[32px] min-h-[32px]" style={{ borderColor: 'var(--color-text)', color: 'var(--color-text)' }}>
+                        <div className="border px-1 py-1 text-[10px] font-serif font-black leading-tight flex flex-col items-center" style={{ borderColor: 'var(--color-text)' }}>
                           {calendarData.festivals.split(' ')[0].split('').map((char, index) => (
                             <span key={index}>{char}</span>
                           ))}
@@ -1406,7 +1412,7 @@ export default function App() {
                   )}
                   {calendarData.solarTerm && (
                     <div className="transform -rotate-6 flex items-center justify-center self-end -mt-2">
-                      <div className="border p-0.5 rounded-sm flex items-center justify-center min-w-[28px] min-h-[28px]" style={{ borderColor: primaryColor, color: primaryColor }}>
+                      <div className="border p-0.5 rounded-sm flex items-center justify-center min-w-[28px] min-h-[28px]" style={{ borderColor: 'var(--color-text)', color: 'var(--color-text)' }}>
                         <div className="px-0.5 py-0.5 text-[8px] font-serif font-bold leading-tight flex flex-col items-center">
                           {calendarData.solarTerm.split('').map((char, index) => (
                             <span key={index}>{char}</span>
@@ -1563,12 +1569,15 @@ export default function App() {
         {theme === 'neo-traditional' && (
           <div className="flex-1 flex flex-col items-center justify-center -mt-6">
             <div 
-              className="text-[12rem] font-serif font-black leading-none text-[var(--color-text)] tracking-tighter"
-              style={{ fontFamily: dateFont === 'space' ? '"Abril Fatface", serif' : currentFontValue }}
+              className="text-[12rem] font-serif font-black leading-none tracking-tighter"
+              style={{ 
+                fontFamily: dateFont === 'space' ? '"Abril Fatface", serif' : currentFontValue,
+                color: primaryColor
+              }}
             >
               {calendarData.day.toString().padStart(2, '0')}
             </div>
-            <div className="text-[1.8rem] font-medium opacity-80 mt-2 mb-4 text-[var(--color-text)]">
+            <div className="text-[1.8rem] font-medium opacity-80 mt-2 mb-4" style={{ color: 'var(--color-text)' }}>
               {calendarData.weekdayCn}
             </div>
             
@@ -1687,7 +1696,67 @@ export default function App() {
 
         {/* Neo-Traditional Footer */}
         {theme === 'neo-traditional' && (
-          <footer className="mt-auto px-1 pb-2 flex flex-col gap-0" id="neo-footer">
+          <footer className="mt-auto px-1 pb-2 flex flex-col gap-0 relative" id="neo-footer">
+            {/* 手撕按钮 */}
+            {isManualMode && (() => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const cur = new Date(currentDate);
+              cur.setHours(0, 0, 0, 0);
+              const diff = Math.ceil((today.getTime() - cur.getTime()) / (1000 * 60 * 60 * 24));
+              
+              if (cur >= today) return null;
+
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="absolute left-1/2 -translate-x-1/2 bottom-[100px] z-20"
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleTear}
+                    disabled={isTearing}
+                    className="flex items-center gap-3 pl-6 pr-2 py-2 rounded-full shadow-lg transition-all group relative border border-white/20 backdrop-blur-md"
+                    style={{ 
+                      backgroundColor: tearButtonStyle.baseColor,
+                      color: tearButtonStyle.textColor,
+                      boxShadow: `0 8px 30px ${tearButtonStyle.shadowColor}`
+                    }}
+                    title="撕掉当前页，开启新的一天"
+                  >
+                    <div className="flex flex-col items-center leading-none">
+                      <span className="text-[15px] md:text-[16px] font-black uppercase mb-0.5">撕掉过去</span>
+                      <span className="text-[10px] font-black opacity-80 uppercase tracking-tight">下拽或点击</span>
+                    </div>
+
+                    <div 
+                      className="w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20 shrink-0"
+                      style={{ backgroundColor: tearButtonStyle.badgeBgColor }}
+                    >
+                      <span 
+                        className="text-2xl md:text-3xl font-black leading-none"
+                        style={{ color: (theme === 'technical' || theme === 'vanguard') ? tearButtonStyle.baseColor : tearButtonStyle.badgeTextColor }}
+                      >{diff}</span>
+                    </div>
+
+                    {/* Highlight/Pulse */}
+                    <div className="absolute -top-1 -right-1">
+                      <div 
+                        className="w-3 h-3 rounded-full animate-ping opacity-75" 
+                        style={{ backgroundColor: tearButtonStyle.badgeBgColor }}
+                      />
+                      <div 
+                        className="absolute inset-0 w-3 h-3 rounded-full border border-black/10 shadow-sm" 
+                        style={{ backgroundColor: tearButtonStyle.badgeBgColor }}
+                      />
+                    </div>
+                  </motion.button>
+                </motion.div>
+              );
+            })()}
             <div className="w-full flex items-center gap-1 mb-5 opacity-40 text-[var(--color-text)]">
               <div className="flex-1 border-t border-dotted border-current" />
             </div>
@@ -1696,7 +1765,10 @@ export default function App() {
               {/* Left Badge: Lunar Month */}
               <div 
                 className="py-3 px-2 flex flex-col items-center justify-center rounded-sm shadow-sm transition-colors duration-500"
-                style={{ backgroundColor: primaryColor, color: (hexToBrightness(primaryColor) < 160 ? '#FFFFFF' : 'rgba(0,0,0,0.8)') }}
+                style={{ 
+                  backgroundColor: 'var(--color-text)', 
+                  color: (hexToBrightness(schemeStyles['--color-text'] || '#000000') < 160 ? '#FFFFFF' : 'rgba(0,0,0,0.8)') 
+                }}
               >
                 <span className="text-[1.2rem] font-serif font-black [writing-mode:vertical-rl] leading-none tracking-[4px]">
                   {calendarData.lunarMonthName}月
@@ -1727,8 +1799,8 @@ export default function App() {
                   </div>
                 </div>
                 <div 
-                  className="mt-1 pt-2 border-t border-dotted w-full flex justify-center text-[0.7rem] font-black tracking-[4px] uppercase opacity-70 text-[var(--color-text)] transition-colors duration-500"
-                  style={{ borderTopColor: primaryColor + '44' }}
+                  className="mt-1 pt-2 border-t border-dotted w-full flex justify-center text-[0.7rem] font-black tracking-[4px] uppercase opacity-70 text-[var(--color-text)] transition-colors duration-500 transform translate-y-[10px]"
+                  style={{ borderTopColor: 'var(--color-text)' }}
                 >
                   {footerText}
                 </div>
@@ -1737,7 +1809,7 @@ export default function App() {
               {/* Right Box: Lunar Day */}
               <div 
                 className="py-3 px-2.5 flex flex-col items-center justify-center rounded-sm border-2 transition-all duration-500"
-                style={{ borderColor: primaryColor, color: primaryColor }}
+                style={{ borderColor: 'var(--color-text)', color: 'var(--color-text)' }}
               >
                 <span className="text-[1.2rem] font-serif font-black [writing-mode:vertical-rl] leading-none tracking-[6px]">
                   {calendarData.lunarDayName}
