@@ -34,6 +34,21 @@
   }
 }
 
+/* --- Theme: Neo-Traditional (Image Based) --- */
+.theme-neo-traditional {
+  --bg-page: #D8E2DC;
+  --bg-card: #D8E2DC;
+  --color-text: #2C3E50;
+  --color-muted: #2C3E50AA;
+  --border-card: rgba(44, 62, 80, 0.1);
+  --color-primary: #2C3E50;
+  --border-accent: #2C3E50;
+  --font-main: "Noto Serif SC", serif;
+}
+.theme-neo-traditional .calendar-container {
+  @apply px-4 py-8 md:px-8 md:py-10 border-transparent;
+}
+
 @theme {
   --font-sans: "Inter", "Noto Serif SC", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Georgia", "Times New Roman", "Noto Serif SC", serif;

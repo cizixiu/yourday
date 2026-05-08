@@ -20,7 +20,7 @@ const getHash = (str: string) => {
   return Math.abs(hash);
 };
 
-type ThemeType = 'classic' | 'bold' | 'dark' | 'warm' | 'technical' | 'poster' | 'traditional' | 'editorial' | 'vintage' | 'zen' | 'crimson' | 'vanguard';
+type ThemeType = 'classic' | 'bold' | 'dark' | 'warm' | 'technical' | 'poster' | 'traditional' | 'editorial' | 'vintage' | 'zen' | 'crimson' | 'vanguard' | 'neo-traditional';
 type DateFontType = 'bungee' | 'bebas' | 'cormorant' | 'abril' | 'mono' | 'satisfy' | 'space' | 'outfit';
 type QuoteFontType = 'serif' | 'sans' | 'kaiti' | 'calligraphy' | 'handwrite' | 'display' | 'modern' | 'mono';
 type TearAnimationType = 'classic' | 'slide-left' | 'float' | 'zoom';
@@ -65,6 +65,7 @@ export default function App() {
   const [shadowBlur, setShadowBlur] = useState(10);
 
   const cardBgs = [
+    { id: 'default', color: '', label: '跟随主题' },
     { id: 'white', color: '#FFFFFF', label: '纯白' },
     { id: 'paper', color: '#FDFCF8', label: '纸张' },
     { id: 'sepia', color: '#F4ECD8', label: '复古' },
@@ -621,10 +622,16 @@ export default function App() {
       monthName: theme === 'crimson' 
         ? monthNames[month - 1] 
         : (isModern ? `${monthNamesEn[month - 1]} ${monthNames[month - 1]}` : monthNames[month - 1]),
+      monthNameEn: monthNamesEn[month - 1],
       day,
       weekday: isModern ? `${weekDays[weekIdx]} ${weekDaysEn[weekIdx].toUpperCase()}` : weekDays[weekIdx],
+      weekdayCn: weekDays[weekIdx],
       lunarDate: theme === 'classic' ? `农历${lunarMonth}月${lunarDay}${festivals.length > 0 ? '·' + festivals[0] : solarTerm ? '·' + solarTerm : ''}` : `农历${lunarMonth}月${lunarDay}`,
       lunarGanzhi: `${lunarYearGanzhi}年${lunarMonthGanzhi}月${lunarDayGanzhi}日`,
+      lunarYearGanzhi,
+      lunarShengxiao: lunar.getYearShengXiao(),
+      lunarMonthName: lunarMonth,
+      lunarDayName: lunarDay,
       festivals: festivals.join(' '),
       solarTerm: solarTerm || '',
       lunarDayGanzhi,
@@ -644,7 +651,7 @@ export default function App() {
 
   const handleRandomStyle = () => {
     // 1. Random Theme
-    const themeList: ThemeType[] = ['classic', 'bold', 'dark', 'warm', 'technical', 'poster', 'traditional', 'editorial', 'vintage', 'zen', 'crimson', 'vanguard'];
+    const themeList: ThemeType[] = ['classic', 'bold', 'dark', 'warm', 'technical', 'poster', 'traditional', 'editorial', 'vintage', 'zen', 'crimson', 'vanguard', 'neo-traditional'];
     const newTheme = themeList[Math.floor(Math.random() * themeList.length)];
     setTheme(newTheme);
 
@@ -695,6 +702,7 @@ export default function App() {
     { id: 'zen', name: '禅意', class: 'bg-[#F1F8E9] border-[#558B2F]' },
     { id: 'crimson', name: '赤金', class: 'bg-white border-[#e3b245]' },
     { id: 'vanguard', name: '前卫', class: 'bg-[#130A19] border-[#CE93D8]' },
+    { id: 'neo-traditional', name: '墨水屏', class: 'bg-[#D8E2DC] border-[#2C3E50]' },
   ];
 
   const fonts: { id: DateFontType; name: string; value: string }[] = [
@@ -733,6 +741,7 @@ export default function App() {
       case 'zen': return '#8BC34A';
       case 'crimson': return '#e3b245';
       case 'vanguard': return '#CE93D8';
+      case 'neo-traditional': return '#000000';
       default: return '#9CA3AF';
     }
   };
@@ -751,6 +760,7 @@ export default function App() {
       case 'zen': return '#DCEDC8';
       case 'crimson': return '#F5F5F0';
       case 'vanguard': return '#130A19';
+      case 'neo-traditional': return '#D8E2DC';
       default: return '#F5F5F0';
     }
   };
@@ -879,7 +889,7 @@ export default function App() {
   ];
 
   const backgrounds = [
-    { id: 'default', name: '默认', color: 'transparent', preview: 'bg-white' },
+    { id: 'default', name: '默认', color: '#FFFFFF', preview: 'bg-white' },
     { id: 'white', name: '纯白', color: '#FFFFFF', preview: 'bg-white shadow-inner border-gray-100' },
     { id: 'paper', name: '故纸', color: '#FDFBF7', preview: 'bg-[#FDFBF7]' },
     { id: 'cream', name: '杏黄', color: '#FFF9E1', preview: 'bg-[#FFF9E1]' },
@@ -926,7 +936,14 @@ export default function App() {
       };
     } else {
       const currentSchemeData = colorSchemes.find(s => s.id === scheme);
-      styles = currentSchemeData ? (isThemeDark ? currentSchemeData.dark : currentSchemeData.light) || {} : {};
+      const rawStyles = currentSchemeData ? (isThemeDark ? currentSchemeData.dark : currentSchemeData.light) || {} : {};
+      
+      // Filter out backgrounds to preserve theme or custom background settings
+      Object.entries(rawStyles).forEach(([key, value]) => {
+        if (key !== '--bg-page' && key !== '--bg-card') {
+          styles[key] = value;
+        }
+      });
     }
     
     // Ensure --color-primary is set if not present but --border-accent is
@@ -956,6 +973,7 @@ export default function App() {
     switch (theme) {
       case 'technical': return '#64FFDA';
       case 'vanguard': return '#CE93D8';
+      case 'neo-traditional': return '#000000';
       case 'dark': return '#3B82F6';
       case 'warm': return '#5D4037';
       case 'traditional': return '#B03A2E';
@@ -1078,6 +1096,22 @@ export default function App() {
   }, [bgPageValue, theme, scheme]);
 
   // Helper for dynamic button classes
+  const hexToBrightness = (hex: string): number => {
+    if (!hex || !hex.startsWith('#')) return 255;
+    const h = hex.slice(1);
+    let r, g, b;
+    if (h.length === 3) {
+      r = parseInt(h[0] + h[0], 16);
+      g = parseInt(h[1] + h[1], 16);
+      b = parseInt(h[2] + h[2], 16);
+    } else {
+      r = parseInt(h.substring(0, 2), 16);
+      g = parseInt(h.substring(2, 4), 16);
+      b = parseInt(h.substring(4, 6), 16);
+    }
+    return (r * 299 + g * 587 + b * 114) / 1000;
+  };
+
   const isDarkBg = useMemo(() => {
     if (bgPageValue && bgPageValue.startsWith('#')) {
       const hex = bgPageValue.slice(1);
@@ -1281,12 +1315,13 @@ export default function App() {
             }}
             id="calendar-info-page"
             style={{ 
-              backgroundColor: isTearing ? (cardBg || 'var(--bg-card)') : 'transparent',
+              backgroundColor: cardBg || 'var(--bg-card)',
               borderRadius: 'inherit'
             }}
             className="flex flex-col flex-1 h-full w-full relative z-10 transition-colors duration-500"
           >
-            <header className="flex justify-between items-start mb-5" id="header">
+            {theme !== 'neo-traditional' && (
+              <header className="flex justify-between items-start mb-5" id="header">
           <div className="month-box" id="header-month">
             {calendarData.monthName}
           </div>
@@ -1325,10 +1360,33 @@ export default function App() {
                 </div>
               </div>
             )}
-          </div>
-        </header>
+            </div>
+            </header>
+          )}
 
-        <section className="flex-1 relative flex items-center justify-center date-section">
+          {theme === 'neo-traditional' && (
+            <header className="flex flex-col items-center mb-0 px-2" id="neo-header">
+              <div 
+                className="text-[2.8rem] font-serif font-black tracking-tighter text-[var(--color-text)] mb-0 leading-none"
+                style={{ fontFamily: '"Abril Fatface", serif' }}
+              >
+                {calendarData.monthNameEn}
+              </div>
+              <div className="w-full flex items-center gap-1 mb-2 font-serif font-black opacity-80 text-[var(--color-text)]">
+                <div className="flex-1 border-t border-dotted border-current opacity-30" />
+                <span 
+                  className="text-[1.4rem] tracking-widest pt-1"
+                  style={{ fontFamily: '"Abril Fatface", serif' }}
+                >
+                  {currentDate.getFullYear()}.{String(currentDate.getMonth() + 1).padStart(2, '0')}
+                </span>
+                <div className="flex-1 border-t border-dotted border-current opacity-30" />
+              </div>
+            </header>
+          )}
+
+        {theme !== 'neo-traditional' && (
+          <section className="flex-1 relative flex items-center justify-center date-section">
           {/* Theme-specific Festival/Solar Term Layouts */}
           {(calendarData.festivals || calendarData.solarTerm || theme === 'vanguard') && theme !== 'classic' && (
             <div className="absolute inset-0 pointer-events-none select-none" id="festival-layer">
@@ -1337,8 +1395,8 @@ export default function App() {
                 <div className="absolute right-4 top-[1px] flex flex-col gap-2 z-10">
                   {calendarData.festivals && (
                     <div className="transform rotate-[21deg] flex items-center justify-center">
-                      <div className="border-2 border-[#ff461f] text-[#ff461f] p-0.5 rounded-sm flex items-center justify-center min-w-[32px] min-h-[32px]">
-                        <div className="border border-[#ff461f] px-1 py-1 text-[10px] font-serif font-black leading-tight flex flex-col items-center">
+                      <div className="border-2 p-0.5 rounded-sm flex items-center justify-center min-w-[32px] min-h-[32px]" style={{ borderColor: primaryColor, color: primaryColor }}>
+                        <div className="border px-1 py-1 text-[10px] font-serif font-black leading-tight flex flex-col items-center" style={{ borderColor: primaryColor }}>
                           {calendarData.festivals.split(' ')[0].split('').map((char, index) => (
                             <span key={index}>{char}</span>
                           ))}
@@ -1348,7 +1406,7 @@ export default function App() {
                   )}
                   {calendarData.solarTerm && (
                     <div className="transform -rotate-6 flex items-center justify-center self-end -mt-2">
-                      <div className="border border-[#ff461f] text-[#ff461f] p-0.5 rounded-sm flex items-center justify-center min-w-[28px] min-h-[28px]">
+                      <div className="border p-0.5 rounded-sm flex items-center justify-center min-w-[28px] min-h-[28px]" style={{ borderColor: primaryColor, color: primaryColor }}>
                         <div className="px-0.5 py-0.5 text-[8px] font-serif font-bold leading-tight flex flex-col items-center">
                           {calendarData.solarTerm.split('').map((char, index) => (
                             <span key={index}>{char}</span>
@@ -1500,8 +1558,37 @@ export default function App() {
             {calendarData.lunarGanzhi}
           </div>
         </section>
+        )}
 
-        <section className="bottom-section" id="bottom-quote">
+        {theme === 'neo-traditional' && (
+          <div className="flex-1 flex flex-col items-center justify-center -mt-6">
+            <div 
+              className="text-[12rem] font-serif font-black leading-none text-[var(--color-text)] tracking-tighter"
+              style={{ fontFamily: dateFont === 'space' ? '"Abril Fatface", serif' : currentFontValue }}
+            >
+              {calendarData.day.toString().padStart(2, '0')}
+            </div>
+            <div className="text-[1.8rem] font-medium opacity-80 mt-2 mb-4 text-[var(--color-text)]">
+              {calendarData.weekdayCn}
+            </div>
+            
+            {/* Quote placed under weekday for this theme */}
+            <div className="max-w-[280px] text-center px-4">
+              <div 
+                className="text-[1.1rem] leading-relaxed text-[var(--color-text)] opacity-80 mb-2 italic"
+                style={{ fontFamily: currentQuoteFontValue }}
+              >
+                {calendarData.quote.text}
+              </div>
+              <div className="text-[0.7rem] opacity-60 font-serif">
+                —— {calendarData.quote.author}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {theme !== 'neo-traditional' && (
+          <section className="bottom-section" id="bottom-quote">
           <div 
             className={`quote-text mb-5 ${theme === 'classic' ? 'text-center max-w-[360px] mx-auto' : ''}`} 
             id="quote-text"
@@ -1517,8 +1604,10 @@ export default function App() {
             —— {calendarData.quote.author} {calendarData.quote.book ? `《${calendarData.quote.book}》` : ''}
           </div>
         </section>
+        )}
 
-        <footer className="mt-auto pt-3 md:pt-5 flex justify-between items-center border-t border-current/40 relative" id="footer-main">
+        {theme !== 'neo-traditional' && (
+          <footer className="mt-auto pt-3 md:pt-5 flex justify-between items-center border-t border-current/40 relative" id="footer-main">
           <div className="text-xs font-black tracking-[3px] uppercase" id="brand">
             {footerText}
           </div>
@@ -1594,6 +1683,69 @@ export default function App() {
             <div className="text-xs font-bold">{calendarData.weekday}</div>
           </div>
         </footer>
+        )}
+
+        {/* Neo-Traditional Footer */}
+        {theme === 'neo-traditional' && (
+          <footer className="mt-auto px-1 pb-2 flex flex-col gap-0" id="neo-footer">
+            <div className="w-full flex items-center gap-1 mb-5 opacity-40 text-[var(--color-text)]">
+              <div className="flex-1 border-t border-dotted border-current" />
+            </div>
+            
+            <div className="flex items-center justify-between gap-4">
+              {/* Left Badge: Lunar Month */}
+              <div 
+                className="py-3 px-2 flex flex-col items-center justify-center rounded-sm shadow-sm transition-colors duration-500"
+                style={{ backgroundColor: primaryColor, color: (hexToBrightness(primaryColor) < 160 ? '#FFFFFF' : 'rgba(0,0,0,0.8)') }}
+              >
+                <span className="text-[1.2rem] font-serif font-black [writing-mode:vertical-rl] leading-none tracking-[4px]">
+                  {calendarData.lunarMonthName}月
+                </span>
+              </div>
+              
+              {/* Middle Section: Fortune & Details */}
+              <div className="flex-1 flex flex-col items-center gap-2">
+                <div className="text-[0.95rem] font-medium tracking-[1px] opacity-70 text-[var(--color-text)] whitespace-nowrap transition-colors duration-500">
+                  {calendarData.lunarGanzhi} {calendarData.lunarShengxiao}年
+                </div>
+                <div className="flex flex-col gap-1 items-center">
+                  <div className="text-[1.1rem] font-bold text-[var(--color-text)] flex items-center gap-3 transition-colors duration-500">
+                    <span className="opacity-40 font-normal">宜</span>
+                    <div className="flex gap-2">
+                      {calendarData.dayYi.slice(0, 4).map((y: string, idx: number) => (
+                        <span key={idx} className="whitespace-nowrap">{y}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-[1.1rem] font-bold text-[var(--color-text)] flex items-center gap-3 transition-colors duration-500">
+                    <span className="opacity-40 font-normal">忌</span>
+                    <div className="flex gap-2">
+                      {calendarData.dayJi.slice(0, 4).map((j: string, idx: number) => (
+                        <span key={idx} className="whitespace-nowrap">{j}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div 
+                  className="mt-1 pt-2 border-t border-dotted w-full flex justify-center text-[0.7rem] font-black tracking-[4px] uppercase opacity-70 text-[var(--color-text)] transition-colors duration-500"
+                  style={{ borderTopColor: primaryColor + '44' }}
+                >
+                  {footerText}
+                </div>
+              </div>
+              
+              {/* Right Box: Lunar Day */}
+              <div 
+                className="py-3 px-2.5 flex flex-col items-center justify-center rounded-sm border-2 transition-all duration-500"
+                style={{ borderColor: primaryColor, color: primaryColor }}
+              >
+                <span className="text-[1.2rem] font-serif font-black [writing-mode:vertical-rl] leading-none tracking-[6px]">
+                  {calendarData.lunarDayName}
+                </span>
+              </div>
+            </div>
+          </footer>
+        )}
         </motion.div>
       </AnimatePresence>
 
