@@ -1365,17 +1365,17 @@ export default function App() {
           )}
 
           {theme === 'neo-traditional' && (
-            <header className="flex flex-col items-center mb-0 px-2" id="neo-header">
+            <header className="flex flex-col items-center mb-6 md:mb-10 px-2" id="neo-header">
               <div 
-                className="text-[2.8rem] font-serif font-black tracking-tighter mb-0 leading-none"
+                className="text-[2.6rem] md:text-[3.2rem] font-serif font-black tracking-tighter mb-1 leading-none"
                 style={{ fontFamily: '"Abril Fatface", serif', color: primaryColor }}
               >
                 {calendarData.monthNameEn}
               </div>
-              <div className="w-full flex items-center gap-1 mb-2 font-serif font-black opacity-80" style={{ color: 'var(--color-text)' }}>
+              <div className="w-full flex items-center gap-2 mb-1.5 font-serif font-black opacity-80" style={{ color: 'var(--color-text)' }}>
                 <div className="flex-1 border-t border-dotted border-current opacity-30" />
                 <span 
-                  className="text-[1.4rem] tracking-widest pt-1"
+                  className="text-[1.1rem] md:text-[1.4rem] tracking-widest pt-1"
                   style={{ fontFamily: '"Abril Fatface", serif' }}
                 >
                   {currentDate.getFullYear()}.{String(currentDate.getMonth() + 1).padStart(2, '0')}
@@ -1384,7 +1384,7 @@ export default function App() {
               </div>
 
               {(calendarData.festivals || calendarData.solarTerm) && (
-                <div className="mt-1 text-[0.95rem] font-medium tracking-[2px] opacity-70 text-[var(--color-text)] transition-colors duration-500">
+                <div className="mt-0.5 md:mt-1 text-[0.8rem] md:text-[0.95rem] font-medium tracking-[2px] opacity-70 text-[var(--color-text)] transition-colors duration-500">
                   {calendarData.festivals ? calendarData.festivals.split(' ')[0] : calendarData.solarTerm}
                 </div>
               )}
@@ -1567,29 +1567,35 @@ export default function App() {
         )}
 
         {theme === 'neo-traditional' && (
-          <div className="flex-1 flex flex-col items-center justify-center -mt-6">
+          <div className="flex-1 flex flex-col items-center justify-center -mt-4 md:-mt-6">
             <div 
-              className="text-[12rem] font-serif font-black leading-none tracking-tighter"
+              className={`date-number date-style-${dayStyle === 'outline' ? 'hollow' : dayStyle === 'neumorphic' ? 'standard' : dayStyle} text-[8rem] md:text-[12rem] font-serif font-black leading-none tracking-tighter`}
+              data-date={calendarData.day.toString().padStart(2, '0')}
               style={{ 
                 fontFamily: dateFont === 'space' ? '"Abril Fatface", serif' : currentFontValue,
-                color: primaryColor
-              }}
+                color: primaryColor,
+                fontSize: dayFontSize ? `${dayFontSize}px` : undefined,
+                '--date-font-size': dayFontSize ? `${dayFontSize}px` : undefined
+              } as React.CSSProperties}
             >
               {calendarData.day.toString().padStart(2, '0')}
             </div>
-            <div className="text-[1.8rem] font-medium opacity-80 mt-2 mb-4" style={{ color: 'var(--color-text)' }}>
+            <div className="text-[1.4rem] md:text-[1.8rem] font-medium opacity-80 mt-1 md:mt-2 mb-2 md:mb-4" style={{ color: 'var(--color-text)' }}>
               {calendarData.weekdayCn}
             </div>
             
             {/* Quote placed under weekday for this theme */}
-            <div className="max-w-[280px] text-center px-4">
+            <div className="max-w-[240px] md:max-w-[280px] text-center px-4">
               <div 
-                className="text-[1.1rem] leading-relaxed text-[var(--color-text)] opacity-80 mb-2 italic"
-                style={{ fontFamily: currentQuoteFontValue }}
+                className="text-[0.9rem] md:text-[1.1rem] leading-relaxed text-[var(--color-text)] opacity-80 mb-2 italic"
+                style={{ 
+                  fontFamily: currentQuoteFontValue,
+                  fontSize: quoteFontSize ? `${quoteFontSize}px` : undefined
+                }}
               >
                 {calendarData.quote.text}
               </div>
-              <div className="text-[0.7rem] opacity-60 font-serif">
+              <div className="text-[10px] md:text-[12px] opacity-60 font-serif tracking-widest" style={{ fontSize: quoteFontSize ? `${Math.max(10, quoteFontSize * 0.6)}px` : undefined }}>
                 —— {calendarData.quote.author}
               </div>
             </div>
@@ -1764,39 +1770,49 @@ export default function App() {
             <div className="flex items-center justify-between gap-4">
               {/* Left Badge: Lunar Month */}
               <div 
-                className="py-3 px-2 flex flex-col items-center justify-center rounded-sm shadow-sm transition-colors duration-500"
+                className="py-2 md:py-3 px-2 md:px-3 flex flex-col items-center justify-center rounded-sm shadow-sm transition-colors duration-500 min-w-[34px] md:min-w-[44px] shrink-0"
                 style={{ 
                   backgroundColor: 'var(--color-text)', 
                   color: (hexToBrightness(schemeStyles['--color-text'] || '#000000') < 160 ? '#FFFFFF' : 'rgba(0,0,0,0.8)') 
                 }}
               >
-                <span className="text-[1.2rem] font-serif font-black [writing-mode:vertical-rl] leading-none tracking-[4px]">
+                <span className="text-[0.9rem] md:text-[1.2rem] font-serif font-black [writing-mode:vertical-rl] leading-none tracking-[2px] md:tracking-[4px]">
                   {calendarData.lunarMonthName}月
                 </span>
               </div>
               
               {/* Middle Section: Fortune & Details */}
-              <div className="flex-1 flex flex-col items-center gap-2">
-                <div className="text-[0.95rem] font-medium tracking-[1px] opacity-70 text-[var(--color-text)] whitespace-nowrap transition-colors duration-500">
+              <div className="flex-1 flex flex-col items-center gap-1 md:gap-2">
+                <div className="text-[0.85rem] md:text-[0.95rem] font-medium tracking-[1px] opacity-70 text-[var(--color-text)] whitespace-nowrap transition-colors duration-500">
                   {calendarData.lunarGanzhi} {calendarData.lunarShengxiao}年
                 </div>
-                <div className="flex flex-col gap-1 items-center">
-                  <div className="text-[1.1rem] font-bold text-[var(--color-text)] flex items-center gap-3 transition-colors duration-500">
-                    <span className="opacity-40 font-normal">宜</span>
-                    <div className="flex gap-2">
-                      {calendarData.dayYi.slice(0, 4).map((y: string, idx: number) => (
-                        <span key={idx} className="whitespace-nowrap">{y}</span>
-                      ))}
+                <div className="flex flex-col gap-0.5 md:gap-1 items-center">
+                  {showSuitable && (
+                    <div 
+                      className="font-bold text-[var(--color-text)] flex items-center gap-2 md:gap-3 transition-colors duration-500"
+                      style={{ fontSize: adviceFontSize ? `${adviceFontSize}px` : 'clamp(0.9rem, 2.5vw, 1.1rem)' }}
+                    >
+                      <span className="opacity-40 font-normal">宜</span>
+                      <div className="flex gap-1.5 md:gap-2">
+                        {calendarData.dayYi.slice(0, 4).map((y: string, idx: number) => (
+                          <span key={idx} className="whitespace-nowrap">{y}</span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-[1.1rem] font-bold text-[var(--color-text)] flex items-center gap-3 transition-colors duration-500">
-                    <span className="opacity-40 font-normal">忌</span>
-                    <div className="flex gap-2">
-                      {calendarData.dayJi.slice(0, 4).map((j: string, idx: number) => (
-                        <span key={idx} className="whitespace-nowrap">{j}</span>
-                      ))}
+                  )}
+                  {showAvoid && (
+                    <div 
+                      className="font-bold text-[var(--color-text)] flex items-center gap-2 md:gap-3 transition-colors duration-500"
+                      style={{ fontSize: adviceFontSize ? `${adviceFontSize}px` : 'clamp(0.9rem, 2.5vw, 1.1rem)' }}
+                    >
+                      <span className="opacity-40 font-normal">忌</span>
+                      <div className="flex gap-1.5 md:gap-2">
+                        {calendarData.dayJi.slice(0, 4).map((j: string, idx: number) => (
+                          <span key={idx} className="whitespace-nowrap">{j}</span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
                 <div 
                   className="mt-1 pt-2 border-t border-dotted w-full flex justify-center text-[0.7rem] font-black tracking-[4px] uppercase opacity-70 text-[var(--color-text)] transition-colors duration-500 transform translate-y-[10px]"
@@ -1808,10 +1824,10 @@ export default function App() {
               
               {/* Right Box: Lunar Day */}
               <div 
-                className="py-3 px-2.5 flex flex-col items-center justify-center rounded-sm border-2 transition-all duration-500"
+                className="py-2 md:py-3 px-2 md:px-3 flex flex-col items-center justify-center rounded-sm border-2 transition-all duration-500 min-w-[34px] md:min-w-[44px] shrink-0"
                 style={{ borderColor: 'var(--color-text)', color: 'var(--color-text)' }}
               >
-                <span className="text-[1.2rem] font-serif font-black [writing-mode:vertical-rl] leading-none tracking-[6px]">
+                <span className="text-[0.9rem] md:text-[1.2rem] font-serif font-black [writing-mode:vertical-rl] leading-none tracking-[2px] md:tracking-[4px]">
                   {calendarData.lunarDayName}
                 </span>
               </div>

@@ -22,3 +22,14 @@ When implementing a new design theme in `src/App.tsx`, ensure the following aspe
 
 5.  **Consistency with Interaction Elements**:
     - Ensure all custom interaction components (like the footer "Your Day" text or current quote) respect user settings like font type and custom text even if the layout is radically different from the 'classic' style.
+
+6.  **Full Settings Support**:
+    - Explicitly check and implement visibility toggles (`showSuitable`/`showAvoid`) and custom font size overrides (`dayFontSize`, `quoteFontSize`, `adviceFontSize`) for all text elements within the new theme.
+    - Ensure `dayStyle` variations (shadow, outline, etc.) are correctly mapped to their respective classes if the theme uses custom date rendering.
+
+7.  **Mobile-First Responsiveness**:
+    - Apply responsive variants (e.g., `text-[8rem] md:text-[12rem]`) to all typography and layout containers.
+    - Avoid fixed pixel widths for text heavy components; use flexible spacing or `clamp()` when necessary to prevent overflow on small screens.
+
+8.  **Visual Pattern Alignment**:
+    - Maintain structural consistency across similar UI components (e.g., matching padding, minimum width, and border styles for Lunar Month and Lunar Day badges) to ensure visual balance.
