@@ -7,7 +7,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Solar, Lunar } from 'lunar-javascript';
 import { QUOTES, ADVICE_POOL } from './data/quotes';
-import { Palette, X, Download, RefreshCw, RotateCcw, Type, Baseline, Layers, Check, ChevronLeft, ChevronRight, Calendar, Pipette, Link, Link2Off } from 'lucide-react';
+import { Palette, X, Download, RefreshCw, RotateCcw, Type, Baseline, Layers, Check, ChevronLeft, ChevronRight, Calendar, Pipette, Link, Link2Off, Edit3, User } from 'lucide-react';
 import { toCanvas } from 'html-to-image';
 import { ColorPicker } from './components/ColorPicker';
 
@@ -24,6 +24,30 @@ type ThemeType = 'classic' | 'bold' | 'dark' | 'warm' | 'technical' | 'poster' |
 type DateFontType = 'bungee' | 'bebas' | 'cormorant' | 'abril' | 'mono' | 'satisfy' | 'space' | 'outfit';
 type QuoteFontType = 'serif' | 'sans' | 'kaiti' | 'calligraphy' | 'handwrite' | 'display' | 'modern' | 'mono';
 type TearAnimationType = 'classic' | 'slide-left' | 'float' | 'zoom';
+
+interface ThemeDefaultSettings {
+  showSuitable: boolean;
+  showAvoid: boolean;
+  dateFont?: DateFontType;
+  quoteFont?: QuoteFontType;
+  dayStyle?: string;
+}
+
+const THEME_DEFAULTS: Record<ThemeType, ThemeDefaultSettings> = {
+  classic: { showSuitable: true, showAvoid: true, dateFont: 'space', quoteFont: 'serif' },
+  bold: { showSuitable: true, showAvoid: true, dateFont: 'bungee', quoteFont: 'modern' },
+  dark: { showSuitable: true, showAvoid: true, dateFont: 'bebas', quoteFont: 'sans' },
+  warm: { showSuitable: true, showAvoid: true, dateFont: 'space', quoteFont: 'serif' },
+  technical: { showSuitable: true, showAvoid: true, dateFont: 'space', quoteFont: 'serif' },
+  poster: { showSuitable: true, showAvoid: true, dateFont: 'space', quoteFont: 'serif' },
+  traditional: { showSuitable: true, showAvoid: true, dateFont: 'abril', quoteFont: 'serif' },
+  editorial: { showSuitable: true, showAvoid: true, dateFont: 'outfit', quoteFont: 'sans' },
+  vintage: { showSuitable: true, showAvoid: true, dateFont: 'space', quoteFont: 'serif' },
+  zen: { showSuitable: true, showAvoid: true, dateFont: 'mono', quoteFont: 'mono' },
+  crimson: { showSuitable: true, showAvoid: true, dateFont: 'outfit', quoteFont: 'sans' },
+  vanguard: { showSuitable: true, showAvoid: false, dateFont: 'outfit', quoteFont: 'sans' },
+  'neo-traditional': { showSuitable: true, showAvoid: false, dateFont: 'mono', quoteFont: 'mono' }
+};
 
 export default function App() {
   const [theme, setTheme] = useState<ThemeType>('bold');
@@ -54,9 +78,19 @@ export default function App() {
   const [cardTexture, setCardTexture] = useState('none');
   const [footerText, setFooterText] = useState('Your Day');
   const [isManualMode, setIsManualMode] = useState(false);
+  const [quoteSource, setQuoteSource] = useState<'local' | 'api'>('local');
+  const [hitokotoCategory, setHitokotoCategory] = useState('d'); // Default to Literature (文学)
+  const [hitokotoData, setHitokotoData] = useState<{text: string, author: string} | null>(null);
+  const [isFetchingHitokoto, setIsFetchingHitokoto] = useState(false);
   const [showSuitable, setShowSuitable] = useState(true);
   const [showAvoid, setShowAvoid] = useState(true);
   const [tearAnimation, setTearAnimation] = useState<TearAnimationType>('classic');
+  // Save preferences
+  useEffect(() => {
+    localStorage.setItem('calendar-quote-source', quoteSource);
+    localStorage.setItem('calendar-hitokoto-category', hitokotoCategory);
+  }, [quoteSource, hitokotoCategory]);
+
   const [isTearing, setIsTearing] = useState(false);
 
   const [isShadowOverlayEnabled, setIsShadowOverlayEnabled] = useState(false);
@@ -82,6 +116,28 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'theme' | 'font' | 'quote' | 'scheme' | 'background' | 'card' | 'border' | 'personal' | 'calendar' | 'visibility' | 'system' | 'shadow'>('theme');
   const [randomSeed, setRandomSeed] = useState(0);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+
+  useEffect(() => {
+    if (quoteSource !== 'api') return;
+
+    const fetchHitokoto = async () => {
+      setIsFetchingHitokoto(true);
+      try {
+        const response = await fetch(`https://v1.hitokoto.cn/?c=${hitokotoCategory}`);
+        const data = await response.json();
+        setHitokotoData({
+          text: data.hitokoto,
+          author: data.from_who ? `${data.from} · ${data.from_who}` : data.from
+        });
+      } catch (error) {
+        console.error('Failed to fetch Hitokoto:', error);
+      } finally {
+        setIsFetchingHitokoto(false);
+      }
+    };
+
+    fetchHitokoto();
+  }, [hitokotoCategory, quoteSource, currentDate, randomSeed]);
 
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -192,6 +248,12 @@ export default function App() {
 
     const savedManualMode = localStorage.getItem('calendar-manual-mode') === 'true';
     setIsManualMode(savedManualMode);
+
+    const savedSource = localStorage.getItem('calendar-quote-source') as 'local' | 'api';
+    if (savedSource) setQuoteSource(savedSource);
+
+    const savedHitokotoCat = localStorage.getItem('calendar-hitokoto-category');
+    if (savedHitokotoCat) setHitokotoCategory(savedHitokotoCat);
 
     const savedShowSuitable = localStorage.getItem('calendar-show-suitable');
     if (savedShowSuitable !== null) setShowSuitable(savedShowSuitable === 'true');
@@ -308,6 +370,16 @@ export default function App() {
   const handleThemeChange = (newTheme: ThemeType) => {
     setTheme(newTheme);
     localStorage.setItem('calendar-theme', newTheme);
+    
+    // Apply theme defaults
+    const defaults = THEME_DEFAULTS[newTheme];
+    if (defaults) {
+      if (defaults.showSuitable !== undefined) handleToggleSuitable(defaults.showSuitable);
+      if (defaults.showAvoid !== undefined) handleToggleAvoid(defaults.showAvoid);
+      if (defaults.dateFont) handleFontChange(defaults.dateFont);
+      if (defaults.quoteFont) handleQuoteFontChange(defaults.quoteFont);
+      if (defaults.dayStyle) handleDayStyleChange(defaults.dayStyle);
+    }
   };
 
   const handleFontChange = (newFont: DateFontType) => {
@@ -606,9 +678,21 @@ export default function App() {
     const hash = randomSeed === 0 ? getHash(dateStr) : randomSeed;
     
     // Custom Quote Logic
-    const quote = customQuoteText 
-      ? { text: customQuoteText, author: customQuoteSource, book: '' }
-      : QUOTES[hash % QUOTES.length];
+    let quote;
+    if (quoteSource === 'api') {
+      if (hitokotoData) {
+        quote = hitokotoData;
+      } else {
+        quote = { text: '正在获取新鲜金句...', author: '一言 API', book: '' };
+      }
+    } else {
+      // Local/Custom mode
+      if (customQuoteText) {
+        quote = { text: customQuoteText, author: customQuoteSource, book: '' };
+      } else {
+        quote = QUOTES[hash % QUOTES.length];
+      }
+    }
       
     const advice = ADVICE_POOL[hash % ADVICE_POOL.length];
 
@@ -639,9 +723,19 @@ export default function App() {
       dayYi,
       dayJi
     };
-  }, [currentDate, theme, randomSeed, customQuoteText, customQuoteSource]);
+  }, [currentDate, theme, randomSeed, customQuoteText, customQuoteSource, quoteSource, hitokotoData]);
 
   const handleRandomQuote = () => {
+    if (quoteSource === 'api') {
+      // Clear custom quote so Hitokoto API result can show
+      handleCustomQuoteChange('');
+      handleCustomQuoteSourceChange('');
+      // Clear current API data to show loading state
+      setHitokotoData(null);
+      // Trigger a re-fetch by increasing seed (which is a dependency of Hitokoto effect)
+      setRandomSeed(prev => prev + 1);
+      return;
+    }
     // Pick a truly random quote from QUOTES
     const randomIndex = Math.floor(Math.random() * QUOTES.length);
     const q = QUOTES[randomIndex];
@@ -727,7 +821,7 @@ export default function App() {
     { id: 'handwrite', name: '随性手写', value: 'var(--font-quote-handwrite)' },
     { id: 'display', name: '现代美术', value: 'var(--font-quote-display)' },
     { id: 'modern', name: '时尚黄油', value: 'var(--font-quote-modern)' },
-    { id: 'mono', name: '极客等宽', value: 'var(--font-quote-mono)' },
+    { id: 'mono', name: '打字机', value: 'var(--font-quote-mono)' },
   ];
 
   const getThemeDefaultColor = (t: ThemeType) => {
@@ -1328,8 +1422,8 @@ export default function App() {
           <div className="month-box capsule-text-xs" id="header-month">
             {calendarData.monthName}
           </div>
-          <div className="text-right flex flex-col items-end gap-3 capsule-hide" id="header-advice">
-            {showSuitable && theme !== 'vanguard' && (
+          <div className="text-right flex flex-col items-end gap-3" id="header-advice">
+            {showSuitable && (
               <div className="flex flex-col items-end">
                 <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] mb-1">今日宜</span>
                 <div 
@@ -1346,7 +1440,7 @@ export default function App() {
                 </div>
               </div>
             )}
-            {showAvoid && theme !== 'vanguard' && (
+            {showAvoid && (
               <div className="hidden md:flex flex-col items-end">
                 <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] mb-1">今日忌</span>
                 <div 
@@ -1375,7 +1469,7 @@ export default function App() {
               >
                 {calendarData.monthNameEn}
               </div>
-              <div className="w-full flex items-center gap-2 mb-1.5 font-serif font-black opacity-80 capsule-compact-header" style={{ color: 'var(--color-text)' }}>
+              <div className="w-full flex items-center justify-center gap-2 mb-1.5 font-serif font-black opacity-80 capsule-compact-header" style={{ color: 'var(--color-text)' }}>
                 <div className="flex-1 border-t border-dotted border-current opacity-30 capsule-hide" />
                 <span 
                   className="text-[1.1rem] md:text-[1.4rem] tracking-widest pt-1 capsule-text-sm"
@@ -1513,12 +1607,12 @@ export default function App() {
           </div>
 
           <h1 
-            className={`date-number date-style-${dayStyle} ${theme === 'vanguard' ? 'main-date capsule-scale-date-vanguard' : ''}`} 
+            className={`date-number date-style-${dayStyle} ${theme === 'vanguard' ? 'main-date capsule-scale-date-vanguard' : 'capsule-scale-date'}`} 
             id="center-date"
             data-date={calendarData.day}
             style={{ 
               fontFamily: currentFontValue, 
-              '--date-font-size': dayFontSize ? `${dayFontSize}px` : (theme === 'vanguard' ? '360px' : undefined),
+              '--date-font-size': dayFontSize ? `${dayFontSize}px` : (theme === 'vanguard' ? '360px' : '280px'),
               '--card-border-color': customBorderColor || (scheme === 'original' ? 'rgba(0,0,0,0.1)' : undefined),
               '--card-border-width': borderWidth !== undefined ? `${borderWidth}px` : undefined
             } as React.CSSProperties}
@@ -1570,25 +1664,26 @@ export default function App() {
         )}
 
         {theme === 'neo-traditional' && (
-          <div className="flex-1 flex flex-col items-center justify-center -mt-2 md:-mt-6">
+          <div className="flex-1 flex flex-col items-center justify-center -mt-6 md:-mt-12">
             <div 
               className={`date-number date-style-${dayStyle === 'outline' ? 'hollow' : dayStyle === 'neumorphic' ? 'standard' : dayStyle} font-serif font-black leading-none tracking-tighter capsule-scale-date`}
               data-date={calendarData.day.toString().padStart(2, '0')}
               style={{ 
                 fontFamily: dateFont === 'space' ? '"Abril Fatface", serif' : currentFontValue,
                 color: primaryColor,
-                fontSize: dayFontSize ? `${dayFontSize}px` : 'clamp(80px, 32cqw, 200px)',
-                '--date-font-size': dayFontSize ? `${dayFontSize}px` : 'clamp(80px, 32cqw, 200px)'
+                fontSize: dayFontSize ? `${dayFontSize}px` : '280px',
+                '--date-font-size': dayFontSize ? `${dayFontSize}px` : '280px',
+                lineHeight: 0.9
               } as React.CSSProperties}
             >
               {calendarData.day.toString().padStart(2, '0')}
             </div>
-            <div className="text-[1.4rem] md:text-[1.8rem] font-medium opacity-80 mt-1 md:mt-2 mb-2 md:mb-4 capsule-text-sm" style={{ color: 'var(--color-text)' }}>
+            <div className="text-[1.4rem] md:text-[1.8rem] font-medium opacity-80 mt-0 md:mt-0 mb-1 md:mb-2 capsule-text-sm" style={{ color: 'var(--color-text)' }}>
               {calendarData.weekdayCn}
             </div>
             
             {/* Quote placed under weekday for this theme */}
-            <div className="max-w-[240px] md:max-w-[280px] text-center px-4 capsule-quote-area">
+            <div className="max-w-[320px] md:max-w-[500px] text-center px-4 capsule-quote-area">
               <div 
                 className="text-[0.9rem] md:text-[1.1rem] leading-relaxed text-[var(--color-text)] opacity-80 mb-2 italic capsule-quote-text"
                 style={{ 
@@ -1709,7 +1804,7 @@ export default function App() {
 
         {/* Neo-Traditional Footer */}
         {theme === 'neo-traditional' && (
-          <footer className="mt-auto px-1 pb-2 flex flex-col gap-0 relative" id="neo-footer">
+          <footer className="mt-auto px-1 pb-2 flex flex-col gap-0 relative" style={{ transform: 'translateY(-20px)' }} id="neo-footer">
             {/* 手撕按钮 */}
             {isManualMode && (() => {
               const today = new Date();
@@ -1793,7 +1888,7 @@ export default function App() {
                 <div className="text-[0.85rem] md:text-[0.95rem] font-medium tracking-[1px] opacity-70 text-[var(--color-text)] whitespace-nowrap transition-colors duration-500">
                   {calendarData.lunarGanzhi} {calendarData.lunarShengxiao}年
                 </div>
-                <div className="flex flex-col gap-0.5 md:gap-1 items-center capsule-hide">
+                <div className="flex flex-col gap-0.5 md:gap-1 items-center">
                   {showSuitable && (
                     <div 
                       className="font-bold text-[var(--color-text)] flex items-center gap-2 md:gap-3 transition-colors duration-500"
@@ -1822,7 +1917,7 @@ export default function App() {
                   )}
                 </div>
                 <div 
-                  className="mt-1 pt-2 border-t border-dotted w-full flex justify-center text-[0.7rem] font-black tracking-[4px] uppercase opacity-70 text-[var(--color-text)] transition-colors duration-500 transform translate-y-[10px]"
+                  className="mt-1 pt-2 border-t border-dotted w-full flex justify-center text-[0.7rem] font-black tracking-[4px] uppercase opacity-70 text-[var(--color-text)] transition-colors duration-500"
                   style={{ borderTopColor: 'var(--color-text)' }}
                 >
                   {footerText}
@@ -2737,7 +2832,7 @@ export default function App() {
                             <span className="text-[11px] font-bold opacity-60 uppercase tracking-widest">排版尺寸</span>
                           </div>
                           <span className="text-[10px] font-bold text-rose-600">
-                            {dayFontSize || (theme === 'vanguard' ? 360 : 200)}px
+                            {dayFontSize || (theme === 'vanguard' ? 360 : 280)}px
                           </span>
                         </div>
                         <div className={`${isDarkBg ? 'bg-white/5' : 'bg-black/5'} rounded-2xl p-3 space-y-3`}>
@@ -2747,12 +2842,12 @@ export default function App() {
                                 key={size}
                                 onClick={() => handleDayFontSizeChange(size)}
                                 className={`flex-1 h-9 rounded-xl text-[10px] font-bold transition-all ${
-                                  dayFontSize === size || (!dayFontSize && size === (theme === 'vanguard' ? 360 : 200))
+                                  dayFontSize === size || (!dayFontSize && size === (theme === 'vanguard' ? 360 : 280))
                                     ? 'bg-white text-rose-700 shadow-sm'
                                     : `${isDarkBg ? 'text-white/40 hover:text-white/80' : 'text-black/40 hover:text-black/80'}`
                                 }`}
                               >
-                                {size === (theme === 'vanguard' ? 360 : 200) ? '默认' : size}
+                                {size}
                               </button>
                             ))}
                           </div>
@@ -2761,7 +2856,7 @@ export default function App() {
                             min="80" 
                             max="500" 
                             step="10"
-                            value={dayFontSize || (theme === 'vanguard' ? 360 : 200)} 
+                            value={dayFontSize || (theme === 'vanguard' ? 360 : 280)} 
                             onChange={(e) => handleDayFontSizeChange(parseInt(e.target.value))}
                             className={`w-full h-1 ${isDarkBg ? 'bg-white/20' : 'bg-black/10'} rounded-lg appearance-none cursor-pointer accent-rose-600`}
                           />
@@ -2800,7 +2895,7 @@ export default function App() {
 
                   {/* Quote Font List */}
                   {activeTab === 'quote' && (
-                    <div className="flex flex-col gap-3 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="flex flex-col gap-4 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                       {/* Sync Switch */}
                       <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl border ${isDarkBg ? 'bg-white/5 border-white/5' : 'bg-black/5 border-transparent'}`}>
                         <div className="flex items-center gap-2">
@@ -2865,7 +2960,7 @@ export default function App() {
                                         : `${isDarkBg ? 'text-white/40 hover:text-white/80' : 'text-black/40 hover:text-black/80'}`
                                     }`}
                                   >
-                                    {size === 18 ? '默认' : size}
+                                    {size}
                                   </button>
                                 ))}
                               </div>
@@ -2887,7 +2982,7 @@ export default function App() {
                                         : `${isDarkBg ? 'text-white/40 hover:text-white/80' : 'text-black/40 hover:text-black/80'}`
                                     }`}
                                   >
-                                    {size === 14 ? '默认' : size}
+                                    {size}
                                   </button>
                                 ))}
                               </div>
@@ -2992,61 +3087,137 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Personal Tab (Footer Text & Custom Quote) */}
+                  {/* Personal Tab (Footer Text & Custom Quote Source) */}
                   {activeTab === 'personal' && (
-                    <div className="flex flex-col gap-6 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      <div className="space-y-4">
-                        {/* Random Quote Button */}
-                        <button 
-                          onClick={handleRandomQuote}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all ${
-                            isDarkBg 
-                              ? 'bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20' 
-                              : 'bg-rose-50 border-rose-100 hover:bg-white'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <RefreshCw className={`w-3 h-3 ${isDarkBg ? 'text-rose-400' : 'text-rose-600'}`} />
-                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isDarkBg ? 'text-rose-300' : 'text-rose-600'}`}>随机切换金句</span>
-                          </div>
-                          <div className="px-2 py-0.5 rounded-full bg-rose-500/10 text-[9px] font-bold text-rose-500">
-                            RANDOM
-                          </div>
-                        </button>
-
+                    <div className="flex flex-col gap-6 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-y-auto max-h-[400px] pr-1">
+                        <div className="space-y-4 pb-4">
                         {/* Footer Text */}
                         <div className="space-y-2">
-                          <div className="px-1 text-[10px] font-bold opacity-40 uppercase tracking-widest">页脚文字内容</div>
-                          <input 
-                            type="text"
-                            value={footerText}
-                            onChange={(e) => handleFooterTextChange(e.target.value)}
-                            className={`w-full px-4 py-3 rounded-2xl border bg-black/5 focus:outline-none focus:ring-2 focus:ring-rose-600/30 transition-all text-sm font-bold ${isDarkBg ? 'border-white/10' : 'border-gray-100'}`}
-                            placeholder="自定义页脚内容..."
-                          />
+                          <div className="px-1 text-[10px] font-bold opacity-40 uppercase tracking-widest flex items-center gap-2">
+                             <Edit3 className="w-3 h-3" />
+                             页脚文字内容
+                          </div>
+                          <div className="mx-0.5">
+                            <input 
+                              type="text"
+                              value={footerText}
+                              onChange={(e) => handleFooterTextChange(e.target.value)}
+                              className={`w-full px-4 py-3 rounded-2xl border transition-all text-sm font-bold outline-none focus:ring-2 focus:ring-rose-500/20 ${isDarkBg ? 'bg-white/5 border-white/10 text-white focus:border-rose-500/50' : 'bg-black/5 border-transparent focus:bg-white focus:border-rose-500/30 shadow-sm'}`}
+                              placeholder="自定义页脚内容..."
+                            />
+                          </div>
                         </div>
 
-                        {/* Custom Quote Text */}
-                        <div className="space-y-2 pt-2 border-t border-black/5">
-                          <div className="px-1 text-[10px] font-bold opacity-40 uppercase tracking-widest">自定义金句内容</div>
-                          <textarea 
-                            value={customQuoteText || calendarData.quote.text}
-                            onChange={(e) => handleCustomQuoteChange(e.target.value)}
-                            className={`w-full h-24 px-4 py-3 rounded-2xl border bg-black/5 focus:outline-none focus:ring-2 focus:ring-rose-600/30 transition-all text-sm font-bold resize-none ${isDarkBg ? 'border-white/10' : 'border-gray-100'}`}
-                            placeholder="让今天更有力量的文字..."
-                          />
-                        </div>
+                        <div className="h-[1px] w-full bg-black/5 my-1" />
 
-                        {/* Custom Quote Source */}
-                        <div className="space-y-2">
-                          <div className="px-1 text-[10px] font-bold opacity-40 uppercase tracking-widest">金句署名</div>
-                          <input 
-                            type="text" 
-                            value={customQuoteSource || calendarData.quote.author}
-                            onChange={(e) => handleCustomQuoteSourceChange(e.target.value)}
-                            className={`w-full px-4 py-3 rounded-2xl border bg-black/5 focus:outline-none focus:ring-2 focus:ring-rose-600/30 transition-all text-sm font-bold ${isDarkBg ? 'border-white/10' : 'border-gray-100'}`}
-                            placeholder="署名，例如：苏轼、尼采..."
-                          />
+                        {/* Quote Source Section */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between px-1">
+                            <div className="flex items-center gap-2">
+                              <Link className="w-3.5 h-3.5 opacity-50" />
+                              <span className="text-[11px] font-bold opacity-60 uppercase tracking-widest">金句内容管理</span>
+                            </div>
+                            <button 
+                              onClick={handleRandomQuote}
+                              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 text-[9px] font-bold text-rose-600 hover:bg-rose-500/20 transition-colors"
+                            >
+                              <RefreshCw className="w-2.5 h-2.5" />
+                              <span>随机切换</span>
+                            </button>
+                          </div>
+                          
+                          {/* Source Switcher */}
+                          <div className="mx-1 flex p-1 bg-black/5 rounded-xl border border-transparent">
+                            <button
+                              onClick={() => setQuoteSource('local')}
+                              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[11px] font-bold transition-all ${
+                                quoteSource === 'local' ? 'bg-white shadow-sm text-rose-600' : 'opacity-50 hover:opacity-100'
+                              }`}
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>本地编辑</span>
+                            </button>
+                            <button
+                              onClick={() => setQuoteSource('api')}
+                              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[11px] font-bold transition-all ${
+                                quoteSource === 'api' ? 'bg-white shadow-sm text-rose-600' : 'opacity-50 hover:opacity-100'
+                              }`}
+                            >
+                              <Link className="w-3.5 h-3.5" />
+                              <span>一言 API</span>
+                            </button>
+                          </div>
+
+                          {/* Source Content */}
+                          <div className="min-h-[160px] flex flex-col gap-4">
+                            {quoteSource === 'local' ? (
+                              <div className="space-y-4">
+                                <div className="mx-0.5">
+                                  <textarea
+                                    value={customQuoteText}
+                                    onChange={(e) => handleCustomQuoteChange(e.target.value)}
+                                    placeholder="输入你喜欢的句子..."
+                                    className={`w-full h-24 p-4 rounded-2xl border transition-all text-sm font-bold resize-none outline-none focus:ring-2 focus:ring-rose-500/30 ${
+                                      isDarkBg ? 'bg-white/5 border-white/10 text-white focus:border-rose-500/50' : 'bg-white border-black/5 text-gray-800 shadow-sm focus:border-rose-500/50'
+                                    }`}
+                                  />
+                                </div>
+                                <div className="mx-0.5 pb-2">
+                                  <div className={`flex items-center gap-2 px-4 h-12 rounded-2xl border transition-all ${
+                                    isDarkBg ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-black/5 shadow-sm text-gray-800'
+                                  } focus-within:ring-2 focus-within:ring-rose-500/30 focus-within:border-rose-500/50`}>
+                                    <User className="w-4 h-4 opacity-40 shrink-0" />
+                                    <input
+                                      type="text"
+                                      value={customQuoteSource}
+                                      onChange={(e) => handleCustomQuoteSourceChange(e.target.value)}
+                                      placeholder="署名/作者"
+                                      className="w-full bg-transparent border-none text-sm font-bold outline-none"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <div className="text-[10px] font-bold opacity-40 uppercase tracking-wider px-1">选择 API 分类</div>
+                                <div className="grid grid-cols-3 gap-1.5 mx-0.5 pb-1">
+                                  {[
+                                    { id: 'd', name: '文学' },
+                                    { id: 'a', name: '动画' },
+                                    { id: 'b', name: '漫画' },
+                                    { id: 'c', name: '游戏' },
+                                    { id: 'e', name: '原创' },
+                                    { id: 'f', name: '网络' },
+                                    { id: 'h', name: '影视' },
+                                    { id: 'i', name: '诗词' },
+                                    { id: 'j', name: '网易云' },
+                                    { id: 'k', name: '哲学' },
+                                    { id: 'l', name: '抖机灵' },
+                                    { id: 'g', name: '其他' },
+                                  ].map((cat) => (
+                                    <button
+                                      key={cat.id}
+                                      onClick={() => {
+                                        setHitokotoCategory(cat.id);
+                                        // Also clear custom text to ensure API shows
+                                        handleCustomQuoteChange('');
+                                        handleCustomQuoteSourceChange('');
+                                      }}
+                                      className={`h-9 rounded-xl text-[10px] font-bold transition-all border ${
+                                        hitokotoCategory === cat.id
+                                          ? 'bg-rose-600 border-rose-600 text-white shadow-md'
+                                          : `${isDarkBg ? 'bg-white/10' : 'bg-black/5'} border-transparent ${isDarkBg ? 'hover:bg-white/20' : 'hover:bg-black/10'}`
+                                      }`}
+                                    >
+                                      {isFetchingHitokoto && hitokotoCategory === cat.id ? (
+                                        <RefreshCw className="w-3 h-3 animate-spin mx-auto" />
+                                      ) : cat.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
