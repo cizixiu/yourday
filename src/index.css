@@ -45,8 +45,8 @@
   --border-accent: #2C3E50;
   --font-main: "Noto Serif SC", serif;
 }
-.theme-neo-traditional .calendar-container {
-  @apply px-4 py-8 md:px-8 md:py-10 border-transparent;
+.theme-neo-traditional.calendar-container {
+  @apply px-4 py-6 md:px-8 md:py-10 border-transparent;
 }
 
 @theme {
@@ -336,8 +336,37 @@ body {
   font-family: var(--font-main);
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   container-type: inline-size;
-  container-name: calendar;
   /* padding is handled by tailwind classes in App.tsx */
+}
+
+/* Capsule Mode (Small Container) - Automatic adjustments */
+@container (max-width: 380px) {
+  .calendar-container {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+}
+
+@container (max-width: 320px) {
+  .capsule-hide {
+    display: none !important;
+  }
+  
+  .capsule-scale-date {
+    font-size: clamp(60px, 35cqw, 120px) !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .capsule-compact-header {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .capsule-text-sm {
+    font-size: 0.9rem !important;
+  }
 }
 
 /* .theme-technical .calendar-container::before removed to fix user reported unexpected grid issues */
@@ -359,7 +388,7 @@ body {
 
 .date-number {
   font-family: var(--dynamic-font, var(--font-serif));
-  font-size: var(--date-font-size, clamp(140px, 52cqw, 280px));
+  font-size: var(--date-font-size, clamp(60px, 38cqw, 180px));
   color: var(--color-primary);
   @apply leading-[1.1] select-none transition-all duration-500 my-2 md:my-0 inline-block;
   padding: 0.03em 0.08em;

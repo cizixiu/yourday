@@ -1365,26 +1365,26 @@ export default function App() {
           )}
 
           {theme === 'neo-traditional' && (
-            <header className="flex flex-col items-center mb-6 md:mb-10 px-2" id="neo-header">
+            <header className="flex flex-col items-center mb-2 md:mb-10 px-2 capsule-compact-header" id="neo-header">
               <div 
-                className="text-[2.6rem] md:text-[3.2rem] font-serif font-black tracking-tighter mb-1 leading-none"
+                className="text-[1.8rem] md:text-[3.2rem] font-serif font-black tracking-tighter mb-1 leading-none capsule-hide"
                 style={{ fontFamily: '"Abril Fatface", serif', color: primaryColor }}
               >
                 {calendarData.monthNameEn}
               </div>
-              <div className="w-full flex items-center gap-2 mb-1.5 font-serif font-black opacity-80" style={{ color: 'var(--color-text)' }}>
-                <div className="flex-1 border-t border-dotted border-current opacity-30" />
+              <div className="w-full flex items-center gap-2 mb-1.5 font-serif font-black opacity-80 capsule-compact-header" style={{ color: 'var(--color-text)' }}>
+                <div className="flex-1 border-t border-dotted border-current opacity-30 capsule-hide" />
                 <span 
-                  className="text-[1.1rem] md:text-[1.4rem] tracking-widest pt-1"
+                  className="text-[1.1rem] md:text-[1.4rem] tracking-widest pt-1 capsule-text-sm"
                   style={{ fontFamily: '"Abril Fatface", serif' }}
                 >
                   {currentDate.getFullYear()}.{String(currentDate.getMonth() + 1).padStart(2, '0')}
                 </span>
-                <div className="flex-1 border-t border-dotted border-current opacity-30" />
+                <div className="flex-1 border-t border-dotted border-current opacity-30 capsule-hide" />
               </div>
 
               {(calendarData.festivals || calendarData.solarTerm) && (
-                <div className="mt-0.5 md:mt-1 text-[0.8rem] md:text-[0.95rem] font-medium tracking-[2px] opacity-70 text-[var(--color-text)] transition-colors duration-500">
+                <div className="mt-0.5 md:mt-1 text-[0.8rem] md:text-[0.95rem] font-medium tracking-[2px] opacity-70 text-[var(--color-text)] transition-colors duration-500 capsule-hide">
                   {calendarData.festivals ? calendarData.festivals.split(' ')[0] : calendarData.solarTerm}
                 </div>
               )}
@@ -1567,25 +1567,25 @@ export default function App() {
         )}
 
         {theme === 'neo-traditional' && (
-          <div className="flex-1 flex flex-col items-center justify-center -mt-4 md:-mt-6">
+          <div className="flex-1 flex flex-col items-center justify-center -mt-2 md:-mt-6">
             <div 
-              className={`date-number date-style-${dayStyle === 'outline' ? 'hollow' : dayStyle === 'neumorphic' ? 'standard' : dayStyle} text-[8rem] md:text-[12rem] font-serif font-black leading-none tracking-tighter`}
+              className={`date-number date-style-${dayStyle === 'outline' ? 'hollow' : dayStyle === 'neumorphic' ? 'standard' : dayStyle} font-serif font-black leading-none tracking-tighter capsule-scale-date`}
               data-date={calendarData.day.toString().padStart(2, '0')}
               style={{ 
                 fontFamily: dateFont === 'space' ? '"Abril Fatface", serif' : currentFontValue,
                 color: primaryColor,
-                fontSize: dayFontSize ? `${dayFontSize}px` : undefined,
-                '--date-font-size': dayFontSize ? `${dayFontSize}px` : undefined
+                fontSize: dayFontSize ? `${dayFontSize}px` : 'clamp(80px, 32cqw, 200px)',
+                '--date-font-size': dayFontSize ? `${dayFontSize}px` : 'clamp(80px, 32cqw, 200px)'
               } as React.CSSProperties}
             >
               {calendarData.day.toString().padStart(2, '0')}
             </div>
-            <div className="text-[1.4rem] md:text-[1.8rem] font-medium opacity-80 mt-1 md:mt-2 mb-2 md:mb-4" style={{ color: 'var(--color-text)' }}>
+            <div className="text-[1.4rem] md:text-[1.8rem] font-medium opacity-80 mt-1 md:mt-2 mb-2 md:mb-4 capsule-text-sm" style={{ color: 'var(--color-text)' }}>
               {calendarData.weekdayCn}
             </div>
             
             {/* Quote placed under weekday for this theme */}
-            <div className="max-w-[240px] md:max-w-[280px] text-center px-4">
+            <div className="max-w-[240px] md:max-w-[280px] text-center px-4 capsule-hide">
               <div 
                 className="text-[0.9rem] md:text-[1.1rem] leading-relaxed text-[var(--color-text)] opacity-80 mb-2 italic"
                 style={{ 
@@ -1786,7 +1786,7 @@ export default function App() {
                 <div className="text-[0.85rem] md:text-[0.95rem] font-medium tracking-[1px] opacity-70 text-[var(--color-text)] whitespace-nowrap transition-colors duration-500">
                   {calendarData.lunarGanzhi} {calendarData.lunarShengxiao}年
                 </div>
-                <div className="flex flex-col gap-0.5 md:gap-1 items-center">
+                <div className="flex flex-col gap-0.5 md:gap-1 items-center capsule-hide">
                   {showSuitable && (
                     <div 
                       className="font-bold text-[var(--color-text)] flex items-center gap-2 md:gap-3 transition-colors duration-500"
@@ -2724,9 +2724,14 @@ export default function App() {
 
                       {/* Size Section */}
                       <div className="space-y-3">
-                        <div className="flex items-center gap-2 px-1">
-                          <Baseline className="w-3.5 h-3.5 opacity-50" />
-                          <span className="text-[11px] font-bold opacity-60 uppercase tracking-widest">排版尺寸</span>
+                        <div className="flex items-center justify-between px-1">
+                          <div className="flex items-center gap-2">
+                            <Baseline className="w-3.5 h-3.5 opacity-50" />
+                            <span className="text-[11px] font-bold opacity-60 uppercase tracking-widest">排版尺寸</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-rose-600">
+                            {dayFontSize || (theme === 'vanguard' ? 360 : 200)}px
+                          </span>
                         </div>
                         <div className={`${isDarkBg ? 'bg-white/5' : 'bg-black/5'} rounded-2xl p-3 space-y-3`}>
                           <div className="flex gap-1.5">
@@ -2764,7 +2769,7 @@ export default function App() {
                         </div>
                         <div className="grid grid-cols-4 gap-2">
                           {[
-                            { id: 'standard', name: '默认' },
+                            { id: 'standard', name: theme === 'neo-traditional' ? '极简' : '默认' },
                             { id: 'shadow', name: '投影' },
                             { id: 'glow', name: '流光' },
                             { id: 'hollow', name: '描边' }
