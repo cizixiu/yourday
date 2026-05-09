@@ -291,7 +291,7 @@ body {
   opacity: 1 !important;
 }
 .theme-vanguard .main-date {
-  font-size: var(--date-font-size, clamp(160px, 80cqw, 450px));
+  font-size: var(--date-font-size, clamp(140px, 75cqw, 400px));
   line-height: 0.8;
   letter-spacing: -0.05em;
   font-weight: 900;
@@ -360,6 +360,10 @@ body {
     margin-bottom: 0 !important;
   }
 
+  .capsule-scale-date-vanguard {
+    font-size: clamp(70px, 48cqw, 130px) !important;
+  }
+
   .capsule-compact-header {
     margin-bottom: 0.25rem !important;
     gap: 0.25rem !important;
@@ -378,6 +382,7 @@ body {
 
   .capsule-text-xs {
     font-size: 0.7rem !important;
+    letter-spacing: 1px !important;
     margin: 0 !important;
   }
 

@@ -1321,11 +1321,11 @@ export default function App() {
             className="flex flex-col flex-1 h-full w-full relative z-10 transition-colors duration-500"
           >
             {theme !== 'neo-traditional' && (
-              <header className="flex justify-between items-start mb-5" id="header">
-          <div className="month-box" id="header-month">
+              <header className="flex justify-between items-start mb-5 capsule-compact-header" id="header">
+          <div className="month-box capsule-text-xs" id="header-month">
             {calendarData.monthName}
           </div>
-          <div className="text-right flex flex-col items-end gap-3" id="header-advice">
+          <div className="text-right flex flex-col items-end gap-3 capsule-hide" id="header-advice">
             {showSuitable && theme !== 'vanguard' && (
               <div className="flex flex-col items-end">
                 <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.2em] mb-1">今日宜</span>
@@ -1492,7 +1492,7 @@ export default function App() {
               )}
               {/* 5. Vanguard: Bold Overlapping Text */}
               {theme === 'vanguard' && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10 capsule-hide">
                   <span className="text-[180px] font-black tracking-tighter break-all leading-none text-center text-[var(--color-text)]">
                     {calendarData.festivals ? calendarData.festivals.split(' ')[0] : (calendarData.solarTerm || calendarData.lunarDayGanzhi)}
                   </span>
@@ -1510,7 +1510,7 @@ export default function App() {
           </div>
 
           <h1 
-            className={`date-number date-style-${dayStyle} ${theme === 'vanguard' ? 'main-date' : ''}`} 
+            className={`date-number date-style-${dayStyle} ${theme === 'vanguard' ? 'main-date capsule-scale-date-vanguard' : ''}`} 
             id="center-date"
             data-date={calendarData.day}
             style={{ 
@@ -1622,8 +1622,12 @@ export default function App() {
         )}
 
         {theme !== 'neo-traditional' && (
-          <footer className="mt-auto pt-3 md:pt-5 flex justify-between items-center border-t border-current/40 relative" id="footer-main">
-          <div className="text-xs font-black tracking-[3px] uppercase" id="brand">
+          <footer className="mt-auto pt-3 md:pt-5 flex justify-between items-center border-t border-current/40 relative capsule-compact-header" id="footer-main">
+          <div 
+            className="text-xs font-black tracking-[3px] uppercase capsule-text-xs" 
+            id="brand"
+            style={theme === 'vanguard' ? { color: 'var(--color-text)', opacity: 1 } : {}}
+          >
             {footerText}
           </div>
 
@@ -1688,7 +1692,7 @@ export default function App() {
             );
           })()}
 
-          <div className="text-right flex flex-col items-end gap-0.5 footer-day-year" id="footer-day-year">
+          <div className="text-right flex flex-col items-end gap-0.5 footer-day-year capsule-text-xs" id="footer-day-year">
             <div 
               className={`text-[11px] ${theme === 'vanguard' ? 'font-bold' : 'text-[var(--color-muted)]'}`}
               style={theme === 'vanguard' ? { color: 'var(--color-text)', opacity: 1 } : {}}
@@ -2335,18 +2339,18 @@ export default function App() {
                                     {/* Theme List */}
                   {activeTab === 'theme' && (
                     <div className="flex flex-col gap-5 pt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      <div className="grid grid-cols-2 gap-2 max-h-[520px] overflow-y-auto pr-1 pb-4">
+                      <div className="grid grid-cols-3 gap-2 max-h-[220px] overflow-y-auto pr-1 pb-4">
                         {themes.map((t) => (
                             <button
                               key={t.id}
                               onClick={() => handleThemeChange(t.id)}
-                              className={`flex flex-col items-start gap-1 p-3.5 rounded-2xl text-xs transition-all border ${
+                              className={`flex flex-col items-center justify-center p-2 rounded-xl text-[10px] transition-all border ${
                                 theme === t.id 
-                                  ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-600/20' 
+                                  ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-600/10' 
                                   : `${isDarkBg ? 'bg-white/10' : 'bg-black/5'} border-transparent ${isDarkBg ? 'hover:bg-white/20' : 'hover:bg-black/10'}`
                               }`}
                             >
-                            <span className="text-sm truncate w-full text-left font-medium">{t.name}</span>
+                            <span className="truncate w-full text-center font-bold tracking-tighter">{t.name}</span>
                           </button>
                         ))}
                       </div>
