@@ -33,3 +33,11 @@ When implementing a new design theme in `src/App.tsx`, ensure the following aspe
 
 8.  **Visual Pattern Alignment**:
     - Maintain structural consistency across similar UI components (e.g., matching padding, minimum width, and border styles for Lunar Month and Lunar Day badges) to ensure visual balance.
+
+9.  **Dynamic Quote Integration**:
+    - Themes must correctly render quotes from `calendarData.quote`, which may come from local pools, user-customized inputs, or the Hitokoto API.
+    - Handle text length variability gracefully (e.g., use `line-clamp` or flexible heights) especially for API-provided content which can be significantly longer than local samples.
+
+10. **UI Polish & Containment**:
+    - Avoid visual clipping on interactive elements (like custom inputs or buttons in the "Personal" tab). Ensure containers have sufficient padding to show focus states and shadows completely.
+    - All interactive content (like the quote author or footer text) should be editable and reflect changes immediately in the preview.
