@@ -661,9 +661,12 @@ export default function App() {
     setScheme(newScheme);
 
     // 3. Random Fonts
-    const fontIds = ['serif', 'sans', 'pixel', 'technical', 'display', 'brush', 'classic'];
-    const newDateFont = fontIds[Math.floor(Math.random() * fontIds.length)] as any;
-    const newQuoteFont = fontIds[Math.floor(Math.random() * fontIds.length)] as any;
+    const dateFontIds: DateFontType[] = ['space', 'bungee', 'bebas', 'cormorant', 'abril', 'mono', 'satisfy', 'outfit'];
+    const quoteFontIds: QuoteFontType[] = ['serif', 'sans', 'kaiti', 'calligraphy', 'handwrite', 'display', 'modern', 'mono'];
+    
+    const newDateFont = dateFontIds[Math.floor(Math.random() * dateFontIds.length)];
+    const newQuoteFont = quoteFontIds[Math.floor(Math.random() * quoteFontIds.length)];
+    
     setDateFont(newDateFont);
     setQuoteFont(newQuoteFont);
 
