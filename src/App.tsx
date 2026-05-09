@@ -1193,7 +1193,7 @@ export default function App() {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className={`calendar-container theme-${theme} w-full max-w-[560px] min-h-[500px] md:aspect-[3/4] border relative p-7 md:p-12 ${dayStyle === 'shadow' ? '' : 'overflow-hidden'} select-none flex flex-col transition-all duration-500 ${hasShadow ? 'shadow-[0_40px_100px_rgba(0,0,0,0.12)]' : 'shadow-none'} ${themes.find(t => t.id === theme)?.class || ''}`}
+        className={`calendar-container theme-${theme} w-full max-w-[560px] aspect-[3/4] border relative p-7 md:p-12 ${dayStyle === 'shadow' ? '' : 'overflow-hidden'} select-none flex flex-col transition-all duration-500 ${hasShadow ? 'shadow-[0_40px_100px_rgba(0,0,0,0.12)]' : 'shadow-none'} ${themes.find(t => t.id === theme)?.class || ''}`}
         id="calendar-container"
         style={{ 
           '--dynamic-font': currentFontValue,
@@ -1365,9 +1365,9 @@ export default function App() {
           )}
 
           {theme === 'neo-traditional' && (
-            <header className="flex flex-col items-center mb-2 md:mb-10 px-2 capsule-compact-header" id="neo-header">
+            <header className="flex flex-col items-center mb-2 md:mb-10 px-2 capsule-header-nest" id="neo-header">
               <div 
-                className="text-[1.8rem] md:text-[3.2rem] font-serif font-black tracking-tighter mb-1 leading-none capsule-hide"
+                className="text-[1.8rem] md:text-[3.2rem] font-serif font-black tracking-tighter mb-1 leading-none capsule-month-scale"
                 style={{ fontFamily: '"Abril Fatface", serif', color: primaryColor }}
               >
                 {calendarData.monthNameEn}
@@ -1384,7 +1384,7 @@ export default function App() {
               </div>
 
               {(calendarData.festivals || calendarData.solarTerm) && (
-                <div className="mt-0.5 md:mt-1 text-[0.8rem] md:text-[0.95rem] font-medium tracking-[2px] opacity-70 text-[var(--color-text)] transition-colors duration-500 capsule-hide">
+                <div className="mt-0.5 md:mt-1 text-[0.8rem] md:text-[0.95rem] font-medium tracking-[2px] opacity-70 text-[var(--color-text)] transition-colors duration-500 capsule-text-xs">
                   {calendarData.festivals ? calendarData.festivals.split(' ')[0] : calendarData.solarTerm}
                 </div>
               )}
@@ -1585,17 +1585,17 @@ export default function App() {
             </div>
             
             {/* Quote placed under weekday for this theme */}
-            <div className="max-w-[240px] md:max-w-[280px] text-center px-4 capsule-hide">
+            <div className="max-w-[240px] md:max-w-[280px] text-center px-4 capsule-quote-area">
               <div 
-                className="text-[0.9rem] md:text-[1.1rem] leading-relaxed text-[var(--color-text)] opacity-80 mb-2 italic"
+                className="text-[0.9rem] md:text-[1.1rem] leading-relaxed text-[var(--color-text)] opacity-80 mb-2 italic capsule-quote-text"
                 style={{ 
                   fontFamily: currentQuoteFontValue,
                   fontSize: quoteFontSize ? `${quoteFontSize}px` : undefined
                 }}
               >
-                {calendarData.quote.text}
+                「{calendarData.quote.text}」
               </div>
-              <div className="text-[10px] md:text-[12px] opacity-60 font-serif tracking-widest" style={{ fontSize: quoteFontSize ? `${Math.max(10, quoteFontSize * 0.6)}px` : undefined }}>
+              <div className="text-[10px] md:text-[12px] opacity-60 font-serif tracking-widest capsule-hide" style={{ fontSize: quoteFontSize ? `${Math.max(10, quoteFontSize * 0.6)}px` : undefined }}>
                 —— {calendarData.quote.author}
               </div>
             </div>
