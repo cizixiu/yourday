@@ -1660,8 +1660,8 @@ export default function App() {
               )}
               {/* 5. Vanguard: Bold Overlapping Text */}
               {theme === 'vanguard' && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10 capsule-hide">
-                  <span className="text-[180px] font-black tracking-tighter break-all leading-none text-center text-[var(--color-text)]">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
+                  <span className="text-[100px] md:text-[180px] font-black tracking-tighter break-all leading-none text-center text-[var(--color-text)]">
                     {calendarData.festivals ? calendarData.festivals.split(' ')[0] : (calendarData.solarTerm || calendarData.lunarDayGanzhi)}
                   </span>
                 </div>
