@@ -1417,6 +1417,14 @@ export default function App() {
             }}
             className="flex flex-col flex-1 h-full w-full relative z-10 transition-colors duration-500"
           >
+            <div 
+              className="flex flex-col flex-1 h-full w-full relative"
+              style={
+                cardTexture === 'watercolor' ? { filter: 'url(#edge-bleed)', mixBlendMode: 'multiply' } : 
+                cardTexture === 'xuan' ? { filter: 'url(#ink-bleed)' } :
+                {}
+              }
+            >
             {theme !== 'neo-traditional' && (
               <header className="flex justify-between items-start mb-5 capsule-compact-header" id="header">
           <div className="month-box capsule-text-xs" id="header-month">
@@ -1936,15 +1944,16 @@ export default function App() {
             </div>
           </footer>
         )}
+            </div>
         </motion.div>
       </AnimatePresence>
 
-        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-[0.03] z-[30] bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]" />
+        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-[0.03] z-0 bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]" />
         {cardTexture === 'grain' && (
-          <div className="absolute inset-0 pointer-events-none opacity-[0.12] mix-blend-multiply z-[30]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+          <div className="absolute inset-0 pointer-events-none opacity-[0.12] mix-blend-multiply z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
         )}
         {cardTexture === 'linen' && (
-          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl z-[30]">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl z-0">
             <div className="absolute -inset-[50px] opacity-[0.06]" style={{ 
               background: `
                 repeating-radial-gradient(#000 0 0.0001%,#fff 0 0.0002%) 60% 60%/3000px 3000px,
@@ -1957,7 +1966,7 @@ export default function App() {
         )}
         {cardTexture === 'recycled' && (
           <>
-            <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-100 z-[30]" style={{ 
+            <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-100 z-0" style={{ 
               backgroundImage: `
                 radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
                 radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
@@ -1971,10 +1980,33 @@ export default function App() {
               `,
               backgroundSize: '3px 3px, 5px 5px, auto'
             }} />
-            <div className="absolute inset-0 pointer-events-none opacity-100" style={{ 
+            <div className="absolute inset-0 pointer-events-none opacity-100 z-0" style={{ 
               background: 'radial-gradient(ellipse at center, transparent 70%, rgba(200,180,120,0.15))' 
             }} />
           </>
+        )}
+        {cardTexture === 'handmade' && (
+          <>
+            <div className="absolute inset-0 pointer-events-none opacity-80 z-0" style={{ filter: 'url(#paper-grain)' }} />
+            <div className="absolute inset-0 pointer-events-none z-0" style={{ 
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 100%)' 
+            }} />
+          </>
+        )}
+        {cardTexture === 'fiber' && (
+          <>
+            <div className="absolute inset-0 pointer-events-none opacity-80 z-0" style={{ filter: 'url(#mixed-fibers)' }} />
+            <div className="absolute inset-0 pointer-events-none z-0" style={{ 
+              background: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.4) 0%, transparent 80%)' 
+            }} />
+          </>
+        )}
+
+        {cardTexture === 'watercolor' && (
+          <div className="absolute inset-0 pointer-events-none opacity-50 z-0" style={{ filter: 'url(#watercolor-filter)', backgroundColor: '#fdfaf2' }} />
+        )}
+        {cardTexture === 'xuan' && (
+          <div className="absolute inset-0 pointer-events-none opacity-60 z-0" style={{ filter: 'url(#paper-texture)', backgroundColor: '#f8f4e6', mixBlendMode: 'multiply' }} />
         )}
 
         {/* Shadow Overlay */}
@@ -2566,12 +2598,16 @@ export default function App() {
                            <Layers className="w-3 h-3" />
                            纸张纹理
                          </div>
-                         <div className="grid grid-cols-4 gap-2">
+                         <div className="grid grid-cols-5 gap-1.5">
                            {[
                              { id: 'none', label: '无', class: 'bg-white' },
                              { id: 'grain', label: '细砂', class: 'bg-gray-100' },
                              { id: 'linen', label: '亚麻', class: 'bg-gray-200' },
-                             { id: 'recycled', label: '再生', class: 'bg-[#F4F1EA]' }
+                             { id: 'recycled', label: '再生', class: 'bg-[#F4F1EA]' },
+                             { id: 'handmade', label: '手工', class: 'bg-[#fcfaf2]' },
+                             { id: 'fiber', label: '纤维', class: 'bg-[#f5f2eb]' },
+                             { id: 'watercolor', label: '水彩', class: 'bg-[#fdfaf2]' },
+                             { id: 'xuan', label: '宣纸', class: 'bg-[#f4f1de]' }
                            ].map(t => (
                              <button
                                key={t.id}
@@ -2605,6 +2641,18 @@ export default function App() {
                                      }} />
                                      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 60%, rgba(200,180,120,0.4))' }} />
                                    </div>
+                                 )}
+                                 {t.id === 'handmade' && (
+                                   <div className="absolute inset-0 opacity-80" style={{ filter: 'url(#paper-grain)' }} />
+                                 )}
+                                 {t.id === 'fiber' && (
+                                   <div className="absolute inset-0 opacity-80" style={{ filter: 'url(#mixed-fibers)' }} />
+                                 )}
+                                 {t.id === 'watercolor' && (
+                                   <div className="absolute inset-0 opacity-40" style={{ filter: 'url(#watercolor-filter)' }} />
+                                 )}
+                                 {t.id === 'xuan' && (
+                                   <div className="absolute inset-0 opacity-30" style={{ filter: 'url(#watercolor-filter)' }} />
                                  )}
                                </div>
                                <span className="text-[9px] font-bold uppercase tracking-tight">{t.label}</span>
@@ -3267,6 +3315,65 @@ export default function App() {
           <div className={`w-1.5 h-20 rounded-l-full transition-all duration-300 ${isDarkBg ? 'bg-white/20 group-hover/trigger:bg-white/50 group-hover/trigger:h-28' : 'bg-black/10 group-hover/trigger:bg-black/30 group-hover/trigger:h-28'}`} />
         </div>
       </motion.div>
+      
+      {/* Paper Texture SVG Filter */}
+      <svg style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0.01, pointerEvents: 'none' }}>
+        <filter id="paper-grain">
+          {/* 生成基础噪声 */}
+          <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch" />
+          {/* 降低噪声对比度，使其变成微弱纹理 */}
+          <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0" />
+        </filter>
+        <filter id="mixed-fibers">
+          {/* 第一层：模拟细碎颗粒 */}
+          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" result="fine-noise" />
+          <feColorMatrix in="fine-noise" type="matrix" values="0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0.15 0" result="fine-dots" />
+          
+          {/* 第二层：模拟长纤维 (通过低频噪声提取) */}
+          <feTurbulence type="fractalNoise" baseFrequency="0.15" numOctaves="2" result="long-noise" />
+          {/* 核心：通过高对比度矩阵提取极少量的“纤维条” */}
+          <feColorMatrix in="long-noise" type="matrix" values="0 0 0 0 0.3 0 0 0 0 0.25 0 0 0 0 0.2 0 0 0 4 -2.8" result="long-fibers" />
+          
+          <feBlend in="fine-dots" in2="long-fibers" mode="multiply" />
+        </filter>
+        <filter id="watercolor-filter">
+          {/* 使用高频噪声模拟细腻的水彩纸纹理，避免产生“乌云”感 */}
+          <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" result="noise" />
+          {/* 转换为灰度高度图 */}
+          <feColorMatrix in="noise" type="saturate" values="0" result="gray-noise" />
+          {/* 降低 surfaceScale 减弱阴影深度，提高光照角度使纹理更柔和 */}
+          <feDiffuseLighting in="gray-noise" lighting-color="#ffffff" surfaceScale="1.2" result="diffuse">
+            <feDistantLight azimuth="45" elevation="65" />
+          </feDiffuseLighting>
+          {/* 使用 soft-light 混合模式，在保留背景色的同时叠加微妙纹理，不会使背景变黑 */}
+          <feBlend in="diffuse" in2="SourceGraphic" mode="soft-light" />
+        </filter>
+        <filter id="edge-bleed">
+          <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="2" result="distort-noise" />
+          <feDisplacementMap in="SourceGraphic" in2="distort-noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
+          <feGaussianBlur stdDeviation="0.2" />
+        </filter>
+        <filter id="paper-texture" filterUnits="objectBoundingBox" x="0" y="0" width="100%" height="100%">
+          {/* 使用分形噪声模拟宣纸纤维 */}
+          <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="5" result="noise" />
+          {/* 转换为灰度高度图 */}
+          <feColorMatrix in="noise" type="saturate" values="0" result="height-map" />
+          {/* 降低 surfaceScale 进一步减弱凹凸感，使其更加微弱自然 */}
+          <feDiffuseLighting in="height-map" lighting-color="#ffffff" surfaceScale="1.2" result="diffuse">
+            <feDistantLight azimuth="45" elevation="60" />
+          </feDiffuseLighting>
+          {/* 与背景结合 */}
+          <feComposite in="diffuse" in2="SourceGraphic" operator="in" />
+        </filter>
+        <filter id="ink-bleed">
+          {/* 生成扰动源 */}
+          <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" result="bleed-noise" />
+          {/* 根据扰动源偏移原始图形边缘 */}
+          <feDisplacementMap in="SourceGraphic" in2="bleed-noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
+          {/* 边缘微弱模糊增加水分感 */}
+          <feGaussianBlur stdDeviation="0.5" />
+        </filter>
+      </svg>
     </div>
   );
 }
