@@ -1290,7 +1290,7 @@ export default function App() {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className={`calendar-container theme-${theme} w-full max-w-[560px] aspect-[3/4] border relative p-7 md:p-12 ${dayStyle === 'shadow' ? '' : 'overflow-hidden'} select-none flex flex-col transition-all duration-500 ${hasShadow ? 'shadow-[0_40px_100px_rgba(0,0,0,0.12)]' : 'shadow-none'} ${themes.find(t => t.id === theme)?.class || ''}`}
+        className={`calendar-container theme-${theme} w-full max-w-[560px] aspect-[3/4] border relative ${dayStyle === 'shadow' ? '' : 'overflow-hidden'} select-none flex flex-col transition-all duration-500 ${hasShadow ? 'shadow-[0_40px_100px_rgba(0,0,0,0.12)]' : 'shadow-none'} ${themes.find(t => t.id === theme)?.class || ''}`}
         id="calendar-container"
         style={{ 
           '--dynamic-font': currentFontValue,
@@ -1415,8 +1415,71 @@ export default function App() {
               backgroundColor: cardBg || 'var(--bg-card)',
               borderRadius: 'inherit'
             }}
-            className="flex flex-col flex-1 h-full w-full relative z-10 transition-colors duration-500"
+            className="flex flex-col flex-1 h-full w-full relative z-10 transition-colors duration-500 p-7 md:p-12"
           >
+            {/* Background Texture Layers - Moved inside to prevent leakage and enable animation */}
+            <div className="absolute inset-0 pointer-events-none rounded-[inherit] overflow-hidden z-0">
+              <div className="absolute inset-0 mix-blend-multiply opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]" />
+              {cardTexture === 'grain' && (
+                <div className="absolute inset-0 opacity-[0.12] mix-blend-multiply" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+              )}
+              {cardTexture === 'linen' && (
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="absolute -inset-[50px] opacity-[0.06]" style={{ 
+                    background: `
+                      repeating-radial-gradient(#000 0 0.0001%,#fff 0 0.0002%) 60% 60%/3000px 3000px,
+                      repeating-conic-gradient(#000 0 0.0001%,#fff 0 0.0002%) 40% 40%/4000px 3000px
+                    `,
+                    backgroundBlendMode: 'difference',
+                    filter: 'blur(1px) contrast(120) brightness(110)',
+                  }} />
+                </div>
+              )}
+              {cardTexture === 'recycled' && (
+                <>
+                  <div className="absolute inset-0 mix-blend-multiply opacity-100" style={{ 
+                    backgroundImage: `
+                      radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+                      radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+                      repeating-linear-gradient(
+                        0deg,
+                        rgba(0,0,0,0.03),
+                        rgba(0,0,0,0.03) 1px,
+                        transparent 1px,
+                        transparent 3px
+                      )
+                    `,
+                    backgroundSize: '3px 3px, 5px 5px, auto'
+                  }} />
+                  <div className="absolute inset-0 opacity-100" style={{ 
+                    background: 'radial-gradient(ellipse at center, transparent 70%, rgba(200,180,120,0.15))' 
+                  }} />
+                </>
+              )}
+              {cardTexture === 'handmade' && (
+                <>
+                  <div className="absolute inset-0 opacity-80" style={{ filter: 'url(#paper-grain)' }} />
+                  <div className="absolute inset-0" style={{ 
+                    background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 100%)' 
+                  }} />
+                </>
+              )}
+              {cardTexture === 'fiber' && (
+                <>
+                  <div className="absolute inset-0 opacity-80" style={{ filter: 'url(#mixed-fibers)' }} />
+                  <div className="absolute inset-0" style={{ 
+                    background: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.4) 0%, transparent 80%)' 
+                  }} />
+                </>
+              )}
+              {cardTexture === 'watercolor' && (
+                <div className="absolute inset-0 opacity-50" style={{ filter: 'url(#watercolor-filter)', backgroundColor: '#fdfaf2' }} />
+              )}
+              {cardTexture === 'xuan' && (
+                <div className="absolute inset-0 opacity-60" style={{ filter: 'url(#paper-texture)', backgroundColor: '#fdfcf0', mixBlendMode: 'multiply' }} />
+              )}
+            </div>
+
             <div 
               className="flex flex-col flex-1 h-full w-full relative"
               style={
@@ -1947,67 +2010,6 @@ export default function App() {
             </div>
         </motion.div>
       </AnimatePresence>
-
-        <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-[0.03] z-0 bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]" />
-        {cardTexture === 'grain' && (
-          <div className="absolute inset-0 pointer-events-none opacity-[0.12] mix-blend-multiply z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
-        )}
-        {cardTexture === 'linen' && (
-          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl z-0">
-            <div className="absolute -inset-[50px] opacity-[0.06]" style={{ 
-              background: `
-                repeating-radial-gradient(#000 0 0.0001%,#fff 0 0.0002%) 60% 60%/3000px 3000px,
-                repeating-conic-gradient(#000 0 0.0001%,#fff 0 0.0002%) 40% 40%/4000px 3000px
-              `,
-              backgroundBlendMode: 'difference',
-              filter: 'blur(1px) contrast(120) brightness(110)',
-            }} />
-          </div>
-        )}
-        {cardTexture === 'recycled' && (
-          <>
-            <div className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-100 z-0" style={{ 
-              backgroundImage: `
-                radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
-                radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
-                repeating-linear-gradient(
-                  0deg,
-                  rgba(0,0,0,0.03),
-                  rgba(0,0,0,0.03) 1px,
-                  transparent 1px,
-                  transparent 3px
-                )
-              `,
-              backgroundSize: '3px 3px, 5px 5px, auto'
-            }} />
-            <div className="absolute inset-0 pointer-events-none opacity-100 z-0" style={{ 
-              background: 'radial-gradient(ellipse at center, transparent 70%, rgba(200,180,120,0.15))' 
-            }} />
-          </>
-        )}
-        {cardTexture === 'handmade' && (
-          <>
-            <div className="absolute inset-0 pointer-events-none opacity-80 z-0" style={{ filter: 'url(#paper-grain)' }} />
-            <div className="absolute inset-0 pointer-events-none z-0" style={{ 
-              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 100%)' 
-            }} />
-          </>
-        )}
-        {cardTexture === 'fiber' && (
-          <>
-            <div className="absolute inset-0 pointer-events-none opacity-80 z-0" style={{ filter: 'url(#mixed-fibers)' }} />
-            <div className="absolute inset-0 pointer-events-none z-0" style={{ 
-              background: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.4) 0%, transparent 80%)' 
-            }} />
-          </>
-        )}
-
-        {cardTexture === 'watercolor' && (
-          <div className="absolute inset-0 pointer-events-none opacity-50 z-0" style={{ filter: 'url(#watercolor-filter)', backgroundColor: '#fdfaf2' }} />
-        )}
-        {cardTexture === 'xuan' && (
-          <div className="absolute inset-0 pointer-events-none opacity-60 z-0" style={{ filter: 'url(#paper-texture)', backgroundColor: '#f8f4e6', mixBlendMode: 'multiply' }} />
-        )}
 
         {/* Shadow Overlay */}
         {isShadowOverlayEnabled && (
