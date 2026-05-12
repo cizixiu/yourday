@@ -60,6 +60,11 @@ export default function App() {
   const [dayFontSize, setDayFontSize] = useState<number | undefined>(undefined);
   const [dayStyle, setDayStyle] = useState<string>('standard');
   const [hasShadow, setHasShadow] = useState(true);
+  const [cardShadowColor, setCardShadowColor] = useState('rgba(0,0,0,0.12)');
+  const [cardShadowBlur, setCardShadowBlur] = useState(100);
+  const [cardShadowSpread, setCardShadowSpread] = useState(0);
+  const [cardShadowX, setCardShadowX] = useState(0);
+  const [cardShadowY, setCardShadowY] = useState(40);
   const [borderRadius, setBorderRadius] = useState<number | undefined>(undefined);
   const [borderWidth, setBorderWidth] = useState<number | undefined>(undefined);
   const [borderColor, setBorderColor] = useState<string>('');
@@ -76,6 +81,7 @@ export default function App() {
   const [isCustomBorder, setIsCustomBorder] = useState(false);
   const [isCustomCardBg, setIsCustomCardBg] = useState(false);
   const [cardTexture, setCardTexture] = useState('none');
+  const [contentFilter, setContentFilter] = useState('none');
   const [footerText, setFooterText] = useState('Your Day');
   const [isManualMode, setIsManualMode] = useState(false);
   const [quoteSource, setQuoteSource] = useState<'local' | 'api'>('local');
@@ -113,7 +119,7 @@ export default function App() {
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'theme' | 'font' | 'quote' | 'scheme' | 'background' | 'card' | 'border' | 'personal' | 'calendar' | 'visibility' | 'system' | 'shadow'>('theme');
+  const [activeTab, setActiveTab] = useState<'theme' | 'font' | 'quote' | 'scheme' | 'background' | 'card' | 'border' | 'filter' | 'personal' | 'calendar' | 'visibility' | 'system' | 'shadow'>('theme');
   const [randomSeed, setRandomSeed] = useState(0);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
@@ -275,6 +281,24 @@ export default function App() {
 
     const savedShadowBlur = localStorage.getItem('calendar-shadow-blur');
     if (savedShadowBlur) setShadowBlur(parseFloat(savedShadowBlur));
+
+    const savedContentFilter = localStorage.getItem('calendar-content-filter');
+    if (savedContentFilter) setContentFilter(savedContentFilter);
+
+    const savedCardShadowColor = localStorage.getItem('calendar-card-shadow-color');
+    if (savedCardShadowColor) setCardShadowColor(savedCardShadowColor);
+
+    const savedCardShadowBlur = localStorage.getItem('calendar-card-shadow-blur');
+    if (savedCardShadowBlur) setCardShadowBlur(parseInt(savedCardShadowBlur));
+
+    const savedCardShadowSpread = localStorage.getItem('calendar-card-shadow-spread');
+    if (savedCardShadowSpread) setCardShadowSpread(parseInt(savedCardShadowSpread));
+
+    const savedCardShadowX = localStorage.getItem('calendar-card-shadow-x');
+    if (savedCardShadowX) setCardShadowX(parseInt(savedCardShadowX));
+
+    const savedCardShadowY = localStorage.getItem('calendar-card-shadow-y');
+    if (savedCardShadowY) setCardShadowY(parseInt(savedCardShadowY));
     
     // If manual mode, try to load last valid date
     if (savedManualMode) {
@@ -312,6 +336,11 @@ export default function App() {
   const handleShadowUrlChange = (url: string) => {
     setShadowOverlayUrl(url);
     localStorage.setItem('calendar-shadow-overlay-url', url);
+  };
+
+  const handleContentFilterChange = (filter: string) => {
+    setContentFilter(filter);
+    localStorage.setItem('calendar-content-filter', filter);
   };
 
   const handleManualModeToggle = (val: boolean) => {
@@ -497,6 +526,53 @@ export default function App() {
     localStorage.setItem('calendar-shadow', String(newVal));
   };
 
+  const handleCardShadowColorChange = (val: string) => {
+    setCardShadowColor(val);
+    localStorage.setItem('calendar-card-shadow-color', val);
+  };
+  const handleCardShadowBlurChange = (val: number) => {
+    setCardShadowBlur(val);
+    localStorage.setItem('calendar-card-shadow-blur', String(val));
+  };
+  const handleCardShadowSpreadChange = (val: number) => {
+    setCardShadowSpread(val);
+    localStorage.setItem('calendar-card-shadow-spread', String(val));
+  };
+  const handleCardShadowXChange = (val: number) => {
+    setCardShadowX(val);
+    localStorage.setItem('calendar-card-shadow-x', String(val));
+  };
+  const handleCardShadowYChange = (val: number) => {
+    setCardShadowY(val);
+    localStorage.setItem('calendar-card-shadow-y', String(val));
+  };
+
+  const shadowPresets = [
+    { id: 'soft', label: '柔和经典', x: 0, y: 40, blur: 100, spread: 0 },
+    { id: 'deep', label: '深邃悬浮', x: 0, y: 60, blur: 120, spread: -15 },
+    { id: 'sharp', label: '硬核锐利', x: 8, y: 8, blur: 0, spread: 0 },
+    { id: 'glow', label: '全周发光', x: 0, y: 0, blur: 50, spread: 10 },
+    { id: 'retro', label: '复古偏移', x: 15, y: 15, blur: 0, spread: 0 },
+    { id: 'minimal', label: '极简微深', x: 0, y: 4, blur: 15, spread: 0 },
+  ];
+
+  const applyShadowPreset = (preset: typeof shadowPresets[0]) => {
+    handleCardShadowXChange(preset.x);
+    handleCardShadowYChange(preset.y);
+    handleCardShadowBlurChange(preset.blur);
+    handleCardShadowSpreadChange(preset.spread);
+  };
+
+  const currentShadowPresetId = useMemo(() => {
+    const match = shadowPresets.find(p => 
+      p.x === cardShadowX && 
+      p.y === cardShadowY && 
+      p.blur === cardShadowBlur && 
+      p.spread === cardShadowSpread
+    );
+    return match?.id || 'custom';
+  }, [cardShadowX, cardShadowY, cardShadowBlur, cardShadowSpread]);
+
   const handleRadiusChange = (newVal: number) => {
     setBorderRadius(newVal);
     localStorage.setItem('calendar-radius', String(newVal));
@@ -584,6 +660,7 @@ export default function App() {
     setBorderColor('');
     setCardBg('');
     setCardTexture('none');
+    setContentFilter('none');
     setScheme('original');
     setBgId('default');
     setCustomQuoteText('');
@@ -596,6 +673,11 @@ export default function App() {
     setShowAvoid(true);
     setTearAnimation('classic');
     setHasShadow(true);
+    setCardShadowColor('rgba(0,0,0,0.12)');
+    setCardShadowBlur(100);
+    setCardShadowSpread(0);
+    setCardShadowX(0);
+    setCardShadowY(40);
     setFooterText('Your Day');
     setIsShadowOverlayEnabled(false);
     setShadowOverlayUrl('https://pic1.imgdb.cn/item/69fb18da4498ed47aaabf1ef.png');
@@ -627,6 +709,11 @@ export default function App() {
       'calendar-quote-font-size',
       'calendar-advice-font-size',
       'calendar-day-font-size',
+      'calendar-card-shadow-color',
+      'calendar-card-shadow-blur',
+      'calendar-card-shadow-spread',
+      'calendar-card-shadow-x',
+      'calendar-card-shadow-y',
       'calendar-day-style',
       'calendar-footer-text',
       'calendar-custom-quote',
@@ -639,7 +726,8 @@ export default function App() {
       'calendar-shadow-overlay-enabled',
       'calendar-shadow-overlay-url',
       'calendar-shadow-opacity',
-      'calendar-shadow-blur'
+      'calendar-shadow-blur',
+      'calendar-content-filter'
     ];
     overrideKeys.forEach(key => localStorage.removeItem(key));
     
@@ -1022,6 +1110,16 @@ export default function App() {
     return isNaN(r) ? '0, 0, 0' : `${r}, ${g}, ${b}`;
   };
 
+  const hexToRgbValues = (hex: string) => {
+    if (!hex) return { r: 0, g: 0, b: 0 };
+    let h = hex.replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const r = parseInt(h.slice(0, 2), 16) / 255;
+    const g = parseInt(h.slice(2, 4), 16) / 255;
+    const b = parseInt(h.slice(4, 6), 16) / 255;
+    return { r: isNaN(r) ? 0 : r, g: isNaN(g) ? 0 : g, b: isNaN(b) ? 0 : b };
+  };
+
   const schemeStyles = useMemo(() => {
     let styles: any = {};
     if (scheme === 'custom' && (customPrimaryColor || customMutedColor)) {
@@ -1290,7 +1388,7 @@ export default function App() {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className={`calendar-container theme-${theme} w-full max-w-[560px] aspect-[3/4] border relative ${dayStyle === 'shadow' ? '' : 'overflow-hidden'} select-none flex flex-col transition-all duration-500 ${hasShadow ? 'shadow-[0_40px_100px_rgba(0,0,0,0.12)]' : 'shadow-none'} ${themes.find(t => t.id === theme)?.class || ''}`}
+        className={`calendar-container theme-${theme} w-full max-w-[560px] aspect-[3/4] border relative ${dayStyle === 'shadow' ? '' : 'overflow-hidden'} select-none flex flex-col transition-all duration-500 ${themes.find(t => t.id === theme)?.class || ''}`}
         id="calendar-container"
         style={{ 
           '--dynamic-font': currentFontValue,
@@ -1301,9 +1399,9 @@ export default function App() {
           borderWidth: borderWidth !== undefined ? `${borderWidth}px` : undefined,
           borderColor: borderColor || undefined,
           borderStyle: (borderWidth !== undefined && borderWidth > 0) ? 'solid' : undefined,
-          boxShadow: hasShadow ? undefined : 'none',
+          boxShadow: hasShadow ? `${cardShadowX}px ${cardShadowY}px ${cardShadowBlur}px ${cardShadowSpread}px ${cardShadowColor}` : 'none',
           perspective: '1200px',
-          overflow: isTearing ? 'visible' : (dayStyle === 'shadow' ? 'visible' : 'hidden')
+          overflow: (isTearing || isDownloading) ? 'visible' : (dayStyle === 'shadow' ? 'visible' : 'hidden')
         } as React.CSSProperties}
       >
         {/* Layered pages background for depth - improved for realistic look */}
@@ -1483,8 +1581,11 @@ export default function App() {
             <div 
               className="flex flex-col flex-1 h-full w-full relative"
               style={
-                cardTexture === 'watercolor' ? { filter: 'url(#edge-bleed)', mixBlendMode: 'multiply' } : 
-                cardTexture === 'xuan' ? { filter: 'url(#ink-bleed)' } :
+                contentFilter === 'watercolor' ? { filter: 'url(#edge-bleed)', mixBlendMode: 'multiply' } : 
+                contentFilter === 'xuan' ? { filter: 'url(#ink-bleed)' } :
+                contentFilter === 'sketch' ? { filter: 'url(#sketch-filter)' } :
+                contentFilter === 'frosted' ? { filter: 'url(#frosted-filter)' } :
+                contentFilter === 'ripple' ? { filter: 'url(#ripple-filter)' } :
                 {}
               }
             >
@@ -2028,9 +2129,98 @@ export default function App() {
                 height: `calc(100% + ${shadowBlur * 3}px)`,
               }}
               referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
             />
           </div>
         )}
+        
+        {/* Paper Texture SVG Filter - Moved inside capture context for download support */}
+        <svg style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', visibility: 'hidden' }} aria-hidden="true">
+          <filter id="paper-grain">
+            {/* 生成基础噪声 */}
+            <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch" />
+            {/* 降低噪声对比度，使其变成微弱纹理 */}
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0" />
+          </filter>
+          <filter id="mixed-fibers">
+            {/* 第一层：模拟细碎颗粒 */}
+            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" result="fine-noise" />
+            <feColorMatrix in="fine-noise" type="matrix" values="0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0.15 0" result="fine-dots" />
+            
+            {/* 第二层：模拟长纤维 (通过低频噪声提取) */}
+            <feTurbulence type="fractalNoise" baseFrequency="0.15" numOctaves="2" result="long-noise" />
+            {/* 核心：通过高对比度矩阵提取极少量的“纤维条” */}
+            <feColorMatrix in="long-noise" type="matrix" values="0 0 0 0 0.3 0 0 0 0 0.25 0 0 0 0 0.2 0 0 0 4 -2.8" result="long-fibers" />
+            
+            <feBlend in="fine-dots" in2="long-fibers" mode="multiply" />
+          </filter>
+          <filter id="watercolor-filter">
+            {/* 使用高频噪声模拟细腻的水彩纸纹理，避免产生“乌云”感 */}
+            <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" result="noise" />
+            {/* 转换为灰度高度图 */}
+            <feColorMatrix in="noise" type="saturate" values="0" result="gray-noise" />
+            {/* 降低 surfaceScale 减弱阴影深度，提高光照角度使纹理更柔和 */}
+            <feDiffuseLighting in="gray-noise" lighting-color="#ffffff" surfaceScale="1.2" result="diffuse">
+              <feDistantLight azimuth="45" elevation="65" />
+            </feDiffuseLighting>
+            {/* 使用 soft-light 混合模式，在保留背景色的同时叠加微妙纹理，不会使背景变黑 */}
+            <feBlend in="diffuse" in2="SourceGraphic" mode="soft-light" />
+          </filter>
+          <filter id="edge-bleed">
+            <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="2" result="distort-noise" />
+            <feDisplacementMap in="SourceGraphic" in2="distort-noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
+            <feGaussianBlur stdDeviation="0.2" />
+          </filter>
+          <filter id="paper-texture" filterUnits="objectBoundingBox" x="0" y="0" width="100%" height="100%">
+            {/* 使用分形噪声模拟宣纸纤维 */}
+            <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="5" result="noise" />
+            {/* 转换为灰度高度图 */}
+            <feColorMatrix in="noise" type="saturate" values="0" result="height-map" />
+            {/* 降低 surfaceScale 进一步减弱凹凸感，使其更加微弱自然 */}
+            <feDiffuseLighting in="height-map" lighting-color="#ffffff" surfaceScale="1.2" result="diffuse">
+              <feDistantLight azimuth="45" elevation="60" />
+            </feDiffuseLighting>
+            {/* 与背景结合 */}
+            <feComposite in="diffuse" in2="SourceGraphic" operator="in" />
+          </filter>
+          <filter id="ink-bleed">
+            {/* 增加频率和层数使边缘抖动更自然且细节更丰富 */}
+            <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="4" result="bleed-noise" />
+            {/* 增大 scale 使晕染位移更明显 */}
+            <feDisplacementMap in="SourceGraphic" in2="bleed-noise" scale="25" xChannelSelector="R" yChannelSelector="G" result="distorted" />
+            {/* 增加模糊程度模拟水分在宣纸上的扩散 */}
+            <feGaussianBlur in="distorted" stdDeviation="1.8" result="blurred" />
+            {/* 叠加原边缘与扩散效果，模拟重墨与淡墨的结合 */}
+            <feBlend in="distorted" in2="blurred" mode="darken" />
+          </filter>
+          <filter id="sketch-filter">
+            <feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0 0 0 1 0" result="grayscale" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" result="noise" />
+            <feDisplacementMap in="grayscale" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" result="displaced" />
+            <feComponentTransfer in="displaced" result="posterized">
+              <feFuncR type="discrete" tableValues="0 0.2 0.5 0.8 1" />
+              <feFuncG type="discrete" tableValues="0 0.2 0.5 0.8 1" />
+              <feFuncB type="discrete" tableValues="0 0.2 0.5 0.8 1" />
+            </feComponentTransfer>
+            <feColorMatrix in="noise" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.4 0" result="faint-noise" />
+            <feBlend in="posterized" in2="faint-noise" mode="multiply" result="blended" />
+            {(() => {
+              const { r: pr, g: pg, b: pb } = hexToRgbValues(primaryColor);
+              return <feColorMatrix in="blended" type="matrix" values={`${pr} 0 0 0 0  0 ${pg} 0 0 0  0 0 ${pb} 0 0  0 0 0 1 0`} />;
+            })()}
+          </filter>
+          <filter id="frosted-filter">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" result="noise" />
+            <feDisplacementMap in="blur" in2="noise" scale="10" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <filter id="ripple-filter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="2" result="noise">
+              <animate attributeName="baseFrequency" dur="10s" values="0.02 0.05; 0.025 0.06; 0.02 0.05" repeatCount="indefinite" />
+            </feTurbulence>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </svg>
       </motion.main>
 
       {/* Global Download Progress Overlay (Circular Design) */}
@@ -2419,6 +2609,12 @@ export default function App() {
                       卡片
                     </button>
                     <button 
+                      onClick={() => setActiveTab('filter')}
+                      className={`text-[11px] py-1.5 rounded-xl transition-all ${activeTab === 'filter' ? tabActiveClass : 'opacity-40'}`}
+                    >
+                      滤镜
+                    </button>
+                    <button 
                       onClick={() => setActiveTab('border')}
                       className={`text-[11px] py-1.5 rounded-xl transition-all ${activeTab === 'border' ? tabActiveClass : 'opacity-40'}`}
                     >
@@ -2593,14 +2789,14 @@ export default function App() {
                   )}
 {/* Card Background Tab */}
                    {activeTab === 'card' && (
-                     <div className="flex flex-col gap-4 pt-3 pb-4">
+                     <div className="flex flex-col gap-4 pt-3 pb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                        {/* 纸张纹理选择 */}
                        <div className="">
                          <div className="text-[10px] font-bold opacity-40 uppercase tracking-wider mb-2.5 flex items-center gap-2">
                            <Layers className="w-3 h-3" />
                            纸张纹理
                          </div>
-                         <div className="grid grid-cols-5 gap-1.5">
+                         <div className="grid grid-cols-4 gap-1.5">
                            {[
                              { id: 'none', label: '无', class: 'bg-white' },
                              { id: 'grain', label: '细砂', class: 'bg-gray-100' },
@@ -2614,58 +2810,24 @@ export default function App() {
                              <button
                                key={t.id}
                                onClick={() => setCardTexture(t.id)}
-                               className={`flex flex-col items-center gap-1 p-1.5 rounded-xl border transition-all ${
+                               className={`flex flex-col items-center gap-1 p-1 rounded-lg border transition-all ${
                                  cardTexture === t.id 
                                    ? 'bg-rose-600 border-rose-600 text-white' 
-                                   : `${isDarkBg ? 'bg-white/10' : 'bg-black/5'} border-transparent ${isDarkBg ? 'hover:bg-white/20' : 'hover:bg-black/10'}`
+                                   : `${isDarkBg ? 'bg-white/10 text-white' : 'bg-black/5 text-black'} border-transparent ${isDarkBg ? 'hover:bg-white/20' : 'hover:bg-black/10'}`
                                }`}
                              >
-                               <div className={`w-full h-5 rounded-lg shadow-inner ${t.class} relative overflow-hidden`}>
+                               <div className={`w-full h-4 rounded-md shadow-inner ${t.class} relative overflow-hidden`}>
                                  {t.id === 'grain' && <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />}
-                                 {t.id === 'linen' && (
-                                   <div className="absolute inset-0 opacity-[0.07] overflow-hidden">
-                                     <div className="absolute -inset-[20px]" style={{ 
-                                       background: `
-                                         repeating-radial-gradient(#000 0 0.0001%,#fff 0 0.0002%) 60% 60%/1000px 1000px,
-                                         repeating-conic-gradient(#000 0 0.0001%,#fff 0 0.0002%) 40% 40%/1000px 1000px
-                                       `,
-                                       backgroundBlendMode: 'difference',
-                                       filter: 'blur(0.5px) contrast(100) brightness(110)',
-                                       mixBlendMode: 'lighten'
-                                     }} />
-                                   </div>
-                                 )}
-                                 {t.id === 'recycled' && (
-                                   <div className="absolute inset-0 opacity-40">
-                                     <div className="absolute inset-0" style={{ 
-                                       backgroundImage: `radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px), radial-gradient(rgba(0,0,0,0.08) 1px, transparent 1px)`,
-                                       backgroundSize: '2px 2px, 3px 3px'
-                                     }} />
-                                     <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 60%, rgba(200,180,120,0.4))' }} />
-                                   </div>
-                                 )}
-                                 {t.id === 'handmade' && (
-                                   <div className="absolute inset-0 opacity-80" style={{ filter: 'url(#paper-grain)' }} />
-                                 )}
-                                 {t.id === 'fiber' && (
-                                   <div className="absolute inset-0 opacity-80" style={{ filter: 'url(#mixed-fibers)' }} />
-                                 )}
-                                 {t.id === 'watercolor' && (
-                                   <div className="absolute inset-0 opacity-40" style={{ filter: 'url(#watercolor-filter)' }} />
-                                 )}
-                                 {t.id === 'xuan' && (
-                                   <div className="absolute inset-0 opacity-30" style={{ filter: 'url(#watercolor-filter)' }} />
-                                 )}
                                </div>
-                               <span className="text-[9px] font-bold uppercase tracking-tight">{t.label}</span>
+                               <span className="text-[8px] font-bold truncate w-full text-center">{t.label}</span>
                              </button>
                            ))}
                          </div>
                        </div>
 
-                       <div className="px-1 mt-2">
+                       <div className="px-1 mt-1">
                          <div className="text-[10px] font-bold opacity-40 uppercase tracking-wider mb-2">背景色</div>
-                         <div className="grid grid-cols-6 gap-3 gap-y-5 px-1 pt-3">
+                         <div className="grid grid-cols-6 gap-3 gap-y-5 px-1 pt-1">
                            {cardBgs.map((bg) => (
                              <button
                                key={bg.id}
@@ -2680,31 +2842,52 @@ export default function App() {
                            <ColorPicker 
                              color={customCardBgColor || '#FFFFFF'} 
                              onChange={(val) => handleCustomCardBgChange(val)}
-                             title="自定义卡片背景"
+                             title="卡片背景"
                              isDarkBg={isDarkBg}
                              triggerShape="pill"
                            />
                          </div>
                        </div>
                         
-                        {/* 卡片效果 */}
-                        <div className="px-1 mt-4 pt-4 border-t border-black/5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">卡片阴影</span>
-                            <button 
-                              onClick={() => handleShadowChange(!hasShadow)}
-                              className={`w-8 h-4 rounded-full transition-colors relative ${hasShadow ? "bg-rose-600" : "bg-gray-400"}`}
-                            >
-                              <motion.div 
-                                animate={{ x: hasShadow ? 18 : 2 }}
-                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm"
-                              />
-                            </button>
-                          </div>
-                        </div>
                      </div>
                    )}
 
+                   {activeTab === 'filter' && (
+                     <div className="flex flex-col gap-4 pt-3 pb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="text-[10px] font-bold opacity-40 uppercase tracking-wider mb-1 flex items-center gap-2 px-1">
+                          <Palette className="w-3 h-3" />
+                          滤镜效果
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            { id: 'none', label: '原图无滤镜' },
+                            { id: 'watercolor', label: '水彩效果' },
+                            { id: 'xuan', label: '水墨宣纸' },
+                            { id: 'sketch', label: '素描噪点' },
+                            { id: 'frosted', label: '毛玻璃感' },
+                            { id: 'ripple', label: '动态波纹' }
+                          ].map(f => (
+                            <button
+                              key={f.id}
+                              onClick={() => handleContentFilterChange(f.id)}
+                              className={`flex flex-col items-start p-3 rounded-2xl border transition-all text-left gap-2 relative ${
+                                contentFilter === f.id 
+                                  ? 'bg-rose-600 border-rose-600 text-white shadow-md' 
+                                  : `${isDarkBg ? 'bg-white/5 border-white/10 text-white' : 'bg-black/5 border-transparent text-black'} hover:bg-rose-600/5`
+                              }`}
+                            >
+                              <div className="flex items-center justify-between w-full h-4">
+                                <div className="text-[11px] font-black tracking-tight">{f.label}</div>
+                                {contentFilter === f.id && <Check className="w-3.5 h-3.5" />}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                        <div className={`mt-2 p-3 rounded-xl text-[10px] italic opacity-60 flex items-start gap-2 ${isDarkBg ? 'bg-white/5' : 'bg-black/5'}`}>
+                           <p>提示：滤镜效果会改变文字与装饰的渲染方式，使其更具艺术感。配合对应的纸张纹理效果更佳。</p>
+                        </div>
+                     </div>
+                   )}
                    {/* Border Tab */}
                    {activeTab === 'border' && (
                      <div className="flex flex-col gap-4 pt-3 pb-4">
@@ -2756,6 +2939,53 @@ export default function App() {
                                 className="w-full h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-rose-600"
                               />
                             </div>
+
+                            <div className="flex items-center justify-between pt-2">
+                                <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">卡片阴影</span>
+                                <button 
+                                  onClick={() => handleShadowChange(!hasShadow)}
+                                  className={`w-8 h-4 rounded-full transition-colors relative ${hasShadow ? "bg-rose-600" : "bg-gray-400"}`}
+                                >
+                                  <motion.div 
+                                    animate={{ x: hasShadow ? 18 : 2 }}
+                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm"
+                                  />
+                                </button>
+                            </div>
+
+                            {hasShadow && (
+                              <div className="space-y-4 pt-3 pb-1 border-t border-black/5 animate-in fade-in slide-in-from-top-1 duration-200">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">阴影颜色</span>
+                                  <ColorPicker 
+                                    color={cardShadowColor.startsWith('rgba') ? '#000000' : cardShadowColor}
+                                    onChange={handleCardShadowColorChange}
+                                    title="自定义阴影颜色"
+                                    isDarkBg={isDarkBg}
+                                    triggerShape="pill"
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider block">阴影风格</span>
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {shadowPresets.map(preset => (
+                                      <button
+                                        key={preset.id}
+                                        onClick={() => applyShadowPreset(preset)}
+                                        className={`px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all border ${
+                                          currentShadowPresetId === preset.id 
+                                            ? "bg-rose-50 border-rose-200 text-rose-600 shadow-sm" 
+                                            : "bg-white/50 border-black/5 text-black/60 hover:bg-white"
+                                        }`}
+                                      >
+                                        {preset.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                      </div>
                    )}
@@ -3318,64 +3548,6 @@ export default function App() {
         </div>
       </motion.div>
       
-      {/* Paper Texture SVG Filter */}
-      <svg style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0.01, pointerEvents: 'none' }}>
-        <filter id="paper-grain">
-          {/* 生成基础噪声 */}
-          <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch" />
-          {/* 降低噪声对比度，使其变成微弱纹理 */}
-          <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0" />
-        </filter>
-        <filter id="mixed-fibers">
-          {/* 第一层：模拟细碎颗粒 */}
-          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" result="fine-noise" />
-          <feColorMatrix in="fine-noise" type="matrix" values="0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0.15 0" result="fine-dots" />
-          
-          {/* 第二层：模拟长纤维 (通过低频噪声提取) */}
-          <feTurbulence type="fractalNoise" baseFrequency="0.15" numOctaves="2" result="long-noise" />
-          {/* 核心：通过高对比度矩阵提取极少量的“纤维条” */}
-          <feColorMatrix in="long-noise" type="matrix" values="0 0 0 0 0.3 0 0 0 0 0.25 0 0 0 0 0.2 0 0 0 4 -2.8" result="long-fibers" />
-          
-          <feBlend in="fine-dots" in2="long-fibers" mode="multiply" />
-        </filter>
-        <filter id="watercolor-filter">
-          {/* 使用高频噪声模拟细腻的水彩纸纹理，避免产生“乌云”感 */}
-          <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" result="noise" />
-          {/* 转换为灰度高度图 */}
-          <feColorMatrix in="noise" type="saturate" values="0" result="gray-noise" />
-          {/* 降低 surfaceScale 减弱阴影深度，提高光照角度使纹理更柔和 */}
-          <feDiffuseLighting in="gray-noise" lighting-color="#ffffff" surfaceScale="1.2" result="diffuse">
-            <feDistantLight azimuth="45" elevation="65" />
-          </feDiffuseLighting>
-          {/* 使用 soft-light 混合模式，在保留背景色的同时叠加微妙纹理，不会使背景变黑 */}
-          <feBlend in="diffuse" in2="SourceGraphic" mode="soft-light" />
-        </filter>
-        <filter id="edge-bleed">
-          <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="2" result="distort-noise" />
-          <feDisplacementMap in="SourceGraphic" in2="distort-noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
-          <feGaussianBlur stdDeviation="0.2" />
-        </filter>
-        <filter id="paper-texture" filterUnits="objectBoundingBox" x="0" y="0" width="100%" height="100%">
-          {/* 使用分形噪声模拟宣纸纤维 */}
-          <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="5" result="noise" />
-          {/* 转换为灰度高度图 */}
-          <feColorMatrix in="noise" type="saturate" values="0" result="height-map" />
-          {/* 降低 surfaceScale 进一步减弱凹凸感，使其更加微弱自然 */}
-          <feDiffuseLighting in="height-map" lighting-color="#ffffff" surfaceScale="1.2" result="diffuse">
-            <feDistantLight azimuth="45" elevation="60" />
-          </feDiffuseLighting>
-          {/* 与背景结合 */}
-          <feComposite in="diffuse" in2="SourceGraphic" operator="in" />
-        </filter>
-        <filter id="ink-bleed">
-          {/* 生成扰动源 */}
-          <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" result="bleed-noise" />
-          {/* 根据扰动源偏移原始图形边缘 */}
-          <feDisplacementMap in="SourceGraphic" in2="bleed-noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
-          {/* 边缘微弱模糊增加水分感 */}
-          <feGaussianBlur stdDeviation="0.5" />
-        </filter>
-      </svg>
     </div>
   );
 }
