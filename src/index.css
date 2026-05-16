@@ -567,4 +567,8 @@ body {
   @apply border-t border-current/40 bg-transparent p-6;
 }
 
+/* End of styles */
+
+/* 之前这里有 .frame-metal，现在已删除 */
+
 

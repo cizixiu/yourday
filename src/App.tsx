@@ -68,6 +68,7 @@ export default function App() {
   const [borderRadius, setBorderRadius] = useState<number | undefined>(undefined);
   const [borderWidth, setBorderWidth] = useState<number | undefined>(undefined);
   const [borderColor, setBorderColor] = useState<string>('');
+  const [borderStyle, setBorderStyle] = useState<'solid' | 'double' | 'dashed'>('solid');
   const [isFontSync, setIsFontSync] = useState(false);
   const [cardBg, setCardBg] = useState<string>('');
   const [customPrimaryColor, setCustomPrimaryColor] = useState<string>('');
@@ -91,7 +92,6 @@ export default function App() {
   const [showSuitable, setShowSuitable] = useState(true);
   const [showAvoid, setShowAvoid] = useState(true);
   const [tearAnimation, setTearAnimation] = useState<TearAnimationType>('classic');
-  // Save preferences
   useEffect(() => {
     localStorage.setItem('calendar-quote-source', quoteSource);
     localStorage.setItem('calendar-hitokoto-category', hitokotoCategory);
@@ -222,6 +222,9 @@ export default function App() {
       setIsCustomBorder(localStorage.getItem('calendar-border-custom') === 'true');
     }
 
+    const savedBorderStyle = localStorage.getItem('calendar-border-style') as 'solid' | 'double' | 'dashed';
+    if (savedBorderStyle) setBorderStyle(savedBorderStyle);
+
     const savedCardBg = localStorage.getItem('calendar-card-bg');
     if (savedCardBg) {
       setCardBg(savedCardBg);
@@ -284,7 +287,7 @@ export default function App() {
 
     const savedContentFilter = localStorage.getItem('calendar-content-filter');
     if (savedContentFilter) setContentFilter(savedContentFilter);
-
+    
     const savedCardShadowColor = localStorage.getItem('calendar-card-shadow-color');
     if (savedCardShadowColor) setCardShadowColor(savedCardShadowColor);
 
@@ -583,6 +586,11 @@ export default function App() {
     localStorage.setItem('calendar-border-width', String(newVal));
   };
 
+  const handleBorderStyleChange = (newVal: 'solid' | 'double' | 'dashed') => {
+    setBorderStyle(newVal);
+    localStorage.setItem('calendar-border-style', newVal);
+  };
+
   const handleQuoteFontSizeChange = (newSize: number) => {
     setQuoteFontSize(newSize);
     localStorage.setItem('calendar-quote-font-size', String(newSize));
@@ -658,6 +666,7 @@ export default function App() {
     setDayFontSize(undefined);
     setDayStyle('standard');
     setBorderColor('');
+    setBorderStyle('solid');
     setCardBg('');
     setCardTexture('none');
     setContentFilter('none');
@@ -701,6 +710,7 @@ export default function App() {
       'calendar-shadow', 
       'calendar-border-width',
       'calendar-border-color', 
+      'calendar-border-style',
       'calendar-card-bg', 
       'calendar-font-sync',
       'calendar-custom-primary', 
@@ -1398,7 +1408,7 @@ export default function App() {
           borderRadius: borderRadius !== undefined ? `${borderRadius}px` : undefined,
           borderWidth: borderWidth !== undefined ? `${borderWidth}px` : undefined,
           borderColor: borderColor || undefined,
-          borderStyle: (borderWidth !== undefined && borderWidth > 0) ? 'solid' : undefined,
+          borderStyle: (borderWidth !== undefined && borderWidth > 0) ? borderStyle : undefined,
           boxShadow: hasShadow ? `${cardShadowX}px ${cardShadowY}px ${cardShadowBlur}px ${cardShadowSpread}px ${cardShadowColor}` : 'none',
           perspective: '1200px',
           overflow: (isTearing || isDownloading) ? 'visible' : (dayStyle === 'shadow' ? 'visible' : 'hidden')
@@ -2136,6 +2146,8 @@ export default function App() {
         
         {/* Paper Texture SVG Filter - Moved inside capture context for download support */}
         <svg style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', visibility: 'hidden' }} aria-hidden="true">
+          <defs>
+          </defs>
           <filter id="paper-grain">
             {/* 生成基础噪声 */}
             <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch" />
@@ -2183,17 +2195,16 @@ export default function App() {
             {/* 与背景结合 */}
             <feComposite in="diffuse" in2="SourceGraphic" operator="in" />
           </filter>
-          <filter id="ink-bleed">
-            {/* 增加频率和层数使边缘抖动更自然且细节更丰富 */}
-            <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="4" result="bleed-noise" />
-            {/* 增大 scale 使晕染位移更明显 */}
-            <feDisplacementMap in="SourceGraphic" in2="bleed-noise" scale="25" xChannelSelector="R" yChannelSelector="G" result="distorted" />
-            {/* 增加模糊程度模拟水分在宣纸上的扩散 */}
-            <feGaussianBlur in="distorted" stdDeviation="1.8" result="blurred" />
-            {/* 叠加原边缘与扩散效果，模拟重墨与淡墨的结合 */}
-            <feBlend in="distorted" in2="blurred" mode="darken" />
+          <filter id="ink-bleed" x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="15" xChannelSelector="R" yChannelSelector="G" result="distorted" />
+            <feGaussianBlur in="distorted" stdDeviation="1.2" result="blurred" />
+            <feMerge>
+              <feMergeNode in="blurred" />
+              <feMergeNode in="distorted" />
+            </feMerge>
           </filter>
-          <filter id="sketch-filter">
+          <filter id="sketch-filter" x="0%" y="0%" width="100%" height="100%">
             <feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0 0 0 1 0" result="grayscale" />
             <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" result="noise" />
             <feDisplacementMap in="grayscale" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" result="displaced" />
@@ -2206,7 +2217,13 @@ export default function App() {
             <feBlend in="posterized" in2="faint-noise" mode="multiply" result="blended" />
             {(() => {
               const { r: pr, g: pg, b: pb } = hexToRgbValues(primaryColor);
-              return <feColorMatrix in="blended" type="matrix" values={`${pr} 0 0 0 0  0 ${pg} 0 0 0  0 0 ${pb} 0 0  0 0 0 1 0`} />;
+              const colorMatrix = <feColorMatrix in="blended" type="matrix" values={`${pr} 0 0 0 0  0 ${pg} 0 0 0  0 0 ${pb} 0 0  0 0 0 1 0`} result="colored" />;
+              return (
+                <>
+                  {colorMatrix}
+                  <feComposite in="colored" in2="SourceAlpha" operator="in" />
+                </>
+              );
             })()}
           </filter>
           <filter id="frosted-filter">
@@ -2891,12 +2908,13 @@ export default function App() {
                    {/* Border Tab */}
                    {activeTab === 'border' && (
                      <div className="flex flex-col gap-4 pt-3 pb-4">
-                        <div className="grid grid-cols-6 gap-3 gap-y-5 px-1">
+                        {/* 颜色选择 - 更紧凑的排列 */}
+                        <div className="flex flex-wrap gap-2 px-1 justify-center">
                           {['#E5E7EB', '#9CA3AF', '#4B5563', '#1F2937', '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#FFFFFF'].map(c => (
                             <button
                               key={c}
                               onClick={() => handleBorderColorChange(c)}
-                              className={`w-7 h-7 rounded-full border transition-all flex items-center justify-center mx-auto ${
+                              className={`w-6 h-6 rounded-full border transition-all flex items-center justify-center ${
                                 borderColor === c && !isCustomBorder ? 'ring-2 ring-rose-600 border-rose-600' : 'hover:scale-110 border-black/5 opacity-80 hover:opacity-100'
                               }`}
                               style={{ backgroundColor: c }}
@@ -2905,90 +2923,109 @@ export default function App() {
                           <ColorPicker 
                             color={customBorderColor || '#000000'} 
                             onChange={(val) => handleBorderColorChange(val, true)}
-                            title="自定义边框颜色"
+                            title="自定义"
                             isDarkBg={isDarkBg}
                             triggerShape="pill"
                           />
                         </div>
 
-                        <div className="space-y-4 pt-4 px-1">
-                            <div className="flex flex-col gap-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">圆角半径 ({borderRadius !== undefined ? `${borderRadius}px` : '主题默认'})</span>
-                              </div>
-                              <input 
-                                type="range" 
-                                min="0" 
-                                max="60" 
-                                value={borderRadius !== undefined ? borderRadius : 4} 
-                                onChange={(e) => handleRadiusChange(parseInt(e.target.value))}
-                                className="w-full h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-rose-600"
-                              />
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">边框粗细 ({borderWidth !== undefined ? `${borderWidth}px` : '主题默认'})</span>
-                              </div>
-                              <input 
-                                type="range" 
-                                min="0" 
-                                max="10" 
-                                value={borderWidth !== undefined ? borderWidth : 1} 
-                                onChange={(e) => handleBorderWidthChange(parseInt(e.target.value))}
-                                className="w-full h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-rose-600"
-                              />
-                            </div>
-
-                            <div className="flex items-center justify-between pt-2">
-                                <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">卡片阴影</span>
-                                <button 
-                                  onClick={() => handleShadowChange(!hasShadow)}
-                                  className={`w-8 h-4 rounded-full transition-colors relative ${hasShadow ? "bg-rose-600" : "bg-gray-400"}`}
-                                >
-                                  <motion.div 
-                                    animate={{ x: hasShadow ? 18 : 2 }}
-                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm"
-                                  />
-                                </button>
-                            </div>
-
-                            {hasShadow && (
-                              <div className="space-y-4 pt-3 pb-1 border-t border-black/5 animate-in fade-in slide-in-from-top-1 duration-200">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">阴影颜色</span>
-                                  <ColorPicker 
-                                    color={cardShadowColor.startsWith('rgba') ? '#000000' : cardShadowColor}
-                                    onChange={handleCardShadowColorChange}
-                                    title="自定义阴影颜色"
-                                    isDarkBg={isDarkBg}
-                                    triggerShape="pill"
-                                  />
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider block">阴影风格</span>
-                                  <div className="grid grid-cols-3 gap-2">
-                                    {shadowPresets.map(preset => (
-                                      <button
-                                        key={preset.id}
-                                        onClick={() => applyShadowPreset(preset)}
-                                        className={`px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all border ${
-                                          currentShadowPresetId === preset.id 
-                                            ? "bg-rose-50 border-rose-200 text-rose-600 shadow-sm" 
-                                            : "bg-white/50 border-black/5 text-black/60 hover:bg-white"
-                                        }`}
-                                      >
-                                        {preset.label}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
+                        {/* 圆角和粗细 - 并排显示 */}
+                        <div className="grid grid-cols-2 gap-4 px-1 pt-1">
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">圆角 ({borderRadius !== undefined ? borderRadius : 4})</span>
+                            <input 
+                              type="range" min="0" max="60" 
+                              value={borderRadius !== undefined ? borderRadius : 4} 
+                              onChange={(e) => handleRadiusChange(parseInt(e.target.value))}
+                              className="w-full h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-rose-600"
+                            />
                           </div>
-                     </div>
-                   )}
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">粗细 ({borderWidth !== undefined ? borderWidth : 1})</span>
+                            <input 
+                              type="range" min="0" max="10" 
+                              value={borderWidth !== undefined ? borderWidth : 1} 
+                              onChange={(e) => handleBorderWidthChange(parseInt(e.target.value))}
+                              className="w-full h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-rose-600"
+                            />
+                          </div>
+                        </div>
+
+                        {/* 阴影设置 */}
+                        <div className="px-1 pt-2">
+                          <div className="flex items-center justify-between py-2 border-t border-black/5">
+                              <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">开启卡片阴影</span>
+                              <button 
+                                onClick={() => handleShadowChange(!hasShadow)}
+                                className={`w-8 h-4 rounded-full transition-colors relative ${hasShadow ? "bg-rose-600" : "bg-gray-400"}`}
+                              >
+                                <motion.div 
+                                  animate={{ x: hasShadow ? 18 : 2 }}
+                                  className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm"
+                                />
+                              </button>
+                          </div>
+
+                          {/* 边框样式 - 移出阴影块且更紧凑 */}
+                          <div className="pb-3 border-b border-black/5 mb-3">
+                            <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider block mb-1.5">边框样式</span>
+                            <div className="grid grid-cols-3 gap-2">
+                              {[
+                                { id: 'solid', label: '实线' },
+                                { id: 'double', label: '双线' },
+                                { id: 'dashed', label: '虚线' }
+                              ].map((s) => (
+                                <button
+                                  key={s.id}
+                                  onClick={() => handleBorderStyleChange(s.id as any)}
+                                  className={`py-1 rounded-lg text-[10px] font-medium transition-all border ${
+                                    borderStyle === s.id 
+                                      ? 'bg-rose-600 border-rose-600 text-white' 
+                                      : `${isDarkBg ? 'bg-white/5 border-white/10 text-white' : 'bg-black/5 border-transparent text-black'} hover:bg-rose-600/5`
+                                  }`}
+                                >
+                                  {s.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {hasShadow && (
+                            <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">阴影颜色</span>
+                                <ColorPicker 
+                                  color={cardShadowColor.startsWith('rgba') ? '#000000' : cardShadowColor}
+                                  onChange={handleCardShadowColorChange}
+                                  title="颜色"
+                                  isDarkBg={isDarkBg}
+                                  triggerShape="pill"
+                                />
+                              </div>
+                              
+                              <div className="space-y-1.5">
+                                <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider block">预设风格</span>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {shadowPresets.map(preset => (
+                                    <button
+                                      key={preset.id}
+                                      onClick={() => applyShadowPreset(preset)}
+                                      className={`py-1 rounded-lg text-[10px] font-medium transition-all border ${
+                                        currentShadowPresetId === preset.id 
+                                          ? "bg-rose-50 border-rose-200 text-rose-600 shadow-sm" 
+                                          : "bg-white/50 border-black/5 text-black/60 hover:bg-white"
+                                      }`}
+                                    >
+                                      {preset.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                    {/* Shadow Tab */}
                    {activeTab === 'shadow' && (
