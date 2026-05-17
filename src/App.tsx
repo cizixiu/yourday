@@ -69,6 +69,9 @@ export default function App() {
   const [borderWidth, setBorderWidth] = useState<number | undefined>(undefined);
   const [borderColor, setBorderColor] = useState<string>('');
   const [borderStyle, setBorderStyle] = useState<'solid' | 'double' | 'dashed'>('solid');
+  const [borderDashRatio, setBorderDashRatio] = useState<string>('1:1');
+  const [borderDashType, setBorderDashType] = useState<'dash' | 'dot'>('dash');
+  const [borderDashCap, setBorderDashCap] = useState<'butt' | 'round'>('butt');
   const [isFontSync, setIsFontSync] = useState(false);
   const [cardBg, setCardBg] = useState<string>('');
   const [customPrimaryColor, setCustomPrimaryColor] = useState<string>('');
@@ -284,6 +287,15 @@ export default function App() {
 
     const savedShadowBlur = localStorage.getItem('calendar-shadow-blur');
     if (savedShadowBlur) setShadowBlur(parseFloat(savedShadowBlur));
+
+    const savedBorderDashRatio = localStorage.getItem('calendar-border-dash-ratio');
+    if (savedBorderDashRatio) setBorderDashRatio(savedBorderDashRatio);
+
+    const savedBorderDashType = localStorage.getItem('calendar-border-dash-type');
+    if (savedBorderDashType) setBorderDashType(savedBorderDashType as any);
+
+    const savedBorderDashCap = localStorage.getItem('calendar-border-dash-cap');
+    if (savedBorderDashCap) setBorderDashCap(savedBorderDashCap as any);
 
     const savedContentFilter = localStorage.getItem('calendar-content-filter');
     if (savedContentFilter) setContentFilter(savedContentFilter);
@@ -552,10 +564,7 @@ export default function App() {
 
   const shadowPresets = [
     { id: 'soft', label: '柔和经典', x: 0, y: 40, blur: 100, spread: 0 },
-    { id: 'deep', label: '深邃悬浮', x: 0, y: 60, blur: 120, spread: -15 },
     { id: 'sharp', label: '硬核锐利', x: 8, y: 8, blur: 0, spread: 0 },
-    { id: 'glow', label: '全周发光', x: 0, y: 0, blur: 50, spread: 10 },
-    { id: 'retro', label: '复古偏移', x: 15, y: 15, blur: 0, spread: 0 },
     { id: 'minimal', label: '极简微深', x: 0, y: 4, blur: 15, spread: 0 },
   ];
 
@@ -882,6 +891,7 @@ export default function App() {
     // Reset custom colors to let scheme take over
     setCustomPrimaryColor('');
     setCustomAppBgColor('');
+    setIsCustomBorder(false);
   };
 
   const themes: { id: ThemeType; name: string; class: string }[] = [
@@ -924,19 +934,19 @@ export default function App() {
 
   const getThemeDefaultColor = (t: ThemeType) => {
     switch (t) {
-      case 'classic': return '#2C3E50';
-      case 'bold': return '#000000';
-      case 'dark': return '#58A6FF';
-      case 'warm': return '#8D6E63';
+      case 'bold': return '#1A1A1A';
+      case 'classic': return '#000000';
+      case 'dark': return '#3B82F6';
+      case 'warm': return '#5D4037';
+      case 'technical': return '#64FFDA';
       case 'poster': return '#C41E3A';
       case 'traditional': return '#B03A2E';
-      case 'technical': return '#64FFDA';
       case 'editorial': return '#000000';
       case 'vintage': return '#E76F51';
       case 'zen': return '#8BC34A';
       case 'crimson': return '#e3b245';
       case 'vanguard': return '#CE93D8';
-      case 'neo-traditional': return '#000000';
+      case 'neo-traditional': return '#2C3E50';
       default: return '#9CA3AF';
     }
   };
@@ -1176,22 +1186,55 @@ export default function App() {
     }
     // Fallbacks based on theme
     switch (theme) {
-      case 'technical': return '#64FFDA';
-      case 'vanguard': return '#CE93D8';
-      case 'neo-traditional': return '#000000';
-      case 'dark': return '#3B82F6';
-      case 'warm': return '#5D4037';
-      case 'traditional': return '#B03A2E';
-      case 'poster': return '#C41E3A';
-      case 'zen': return '#8BC34A';
-      case 'vintage': return '#E76F51';
-      case 'crimson': return '#e3b245';
-      case 'editorial': return '#000000';
       case 'bold': return '#1A1A1A';
       case 'classic': return '#000000';
+      case 'dark': return '#3B82F6';
+      case 'warm': return '#5D4037';
+      case 'technical': return '#64FFDA';
+      case 'poster': return '#C41E3A';
+      case 'traditional': return '#B03A2E';
+      case 'editorial': return '#000000';
+      case 'vintage': return '#E76F51';
+      case 'zen': return '#8BC34A';
+      case 'crimson': return '#e3b245';
+      case 'vanguard': return '#CE93D8';
+      case 'neo-traditional': return '#2C3E50';
       default: return isThemeDark ? '#3B82F6' : '#E11D48';
     }
   }, [schemeStyles, isThemeDark, theme]);
+
+  // Auto-sync border color with primary color unless manually locked
+  useEffect(() => {
+    if (!isCustomBorder) {
+      setBorderColor(primaryColor);
+    }
+  }, [primaryColor, isCustomBorder]);
+
+  useEffect(() => { localStorage.setItem('calendar-border-dash-ratio', borderDashRatio); }, [borderDashRatio]);
+  useEffect(() => { localStorage.setItem('calendar-border-dash-type', borderDashType); }, [borderDashType]);
+  useEffect(() => { localStorage.setItem('calendar-border-dash-cap', borderDashCap); }, [borderDashCap]);
+
+  const calculatedDashArray = useMemo(() => {
+    if (borderStyle !== 'dashed') return '';
+    const bw = borderWidth || 1;
+    const parts = borderDashRatio.split(':').map(Number);
+    
+    if (borderDashType === 'dot') {
+      return `0, ${bw * 2 * (parts[1] / parts[0])}`;
+    } else {
+      let dashLen = bw * 2 * parts[0];
+      let gapLen = bw * 2 * parts[1];
+      
+      // Compensate for Round Cap elongation
+      if (borderDashCap === 'round') {
+        const adjustment = bw; // Approximate adjustment for visual balance
+        dashLen = Math.max(0.1, dashLen - adjustment); 
+        gapLen = gapLen + adjustment;
+      }
+      
+      return `${dashLen}, ${gapLen}`;
+    }
+  }, [borderStyle, borderDashType, borderDashRatio, borderWidth, borderDashCap]);
 
   const handleDownload = async () => {
     const node = document.getElementById('calendar-container');
@@ -1398,7 +1441,7 @@ export default function App() {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className={`calendar-container theme-${theme} w-full max-w-[560px] aspect-[3/4] border relative ${dayStyle === 'shadow' ? '' : 'overflow-hidden'} select-none flex flex-col transition-all duration-500 ${themes.find(t => t.id === theme)?.class || ''}`}
+        className={`calendar-container theme-${theme} w-full max-w-[560px] aspect-[3/4] border relative select-none flex flex-col transition-all duration-500 ${themes.find(t => t.id === theme)?.class || ''}`}
         id="calendar-container"
         style={{ 
           '--dynamic-font': currentFontValue,
@@ -1407,28 +1450,62 @@ export default function App() {
           backgroundColor: cardBg || undefined,
           borderRadius: borderRadius !== undefined ? `${borderRadius}px` : undefined,
           borderWidth: borderWidth !== undefined ? `${borderWidth}px` : undefined,
-          borderColor: borderColor || undefined,
-          borderStyle: (borderWidth !== undefined && borderWidth > 0) ? borderStyle : undefined,
+          borderColor: (borderStyle === 'dashed' && borderWidth && borderWidth > 0) ? 'transparent' : (borderColor || undefined),
+          borderStyle: (borderWidth !== undefined && borderWidth > 0) ? (borderStyle === 'dashed' ? 'solid' : borderStyle) : undefined,
           boxShadow: hasShadow ? `${cardShadowX}px ${cardShadowY}px ${cardShadowBlur}px ${cardShadowSpread}px ${cardShadowColor}` : 'none',
           perspective: '1200px',
-          overflow: (isTearing || isDownloading) ? 'visible' : (dayStyle === 'shadow' ? 'visible' : 'hidden')
+          overflow: (isTearing || isDownloading || borderStyle === 'dashed') ? 'visible' : (dayStyle === 'shadow' ? 'visible' : 'hidden')
         } as React.CSSProperties}
       >
-        {/* Layered pages background for depth - improved for realistic look */}
-        <div 
-          className="absolute inset-0 -z-10 translate-y-[2px] scale-[0.998] shadow-sm opacity-70 transition-colors duration-500 border-b border-black/5" 
-          style={{ backgroundColor: cardBg || 'var(--bg-card)', borderRadius: 'inherit' }} 
-        />
-        <div 
-          className="absolute inset-0 -z-20 translate-y-[4px] scale-[0.996] shadow-sm opacity-50 transition-colors duration-500 border-b border-black/5" 
-          style={{ backgroundColor: cardBg || 'var(--bg-card)', borderRadius: 'inherit' }} 
-        />
-        <div 
-          className="absolute inset-0 -z-30 translate-y-[6px] scale-[0.994] shadow-sm opacity-30 transition-colors duration-500 border-b border-black/5" 
-          style={{ backgroundColor: cardBg || 'var(--bg-card)', borderRadius: 'inherit' }} 
-        />
+        {/* Inner Clipper for card content */}
+        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 'inherit' }}>
+          {/* Layered pages background for depth - improved for realistic look */}
+          <div 
+            className="absolute inset-0 -z-10 translate-y-[2px] scale-[0.998] shadow-sm opacity-70 transition-colors duration-500 border-b border-black/5" 
+            style={{ backgroundColor: cardBg || 'var(--bg-card)', borderRadius: 'inherit' }} 
+          />
+          <div 
+            className="absolute inset-0 -z-20 translate-y-[4px] scale-[0.996] shadow-sm opacity-50 transition-colors duration-500 border-b border-black/5" 
+            style={{ backgroundColor: cardBg || 'var(--bg-card)', borderRadius: 'inherit' }} 
+          />
+          <div 
+            className="absolute inset-0 -z-30 translate-y-[6px] scale-[0.994] shadow-sm opacity-30 transition-colors duration-500 border-b border-black/5" 
+            style={{ backgroundColor: cardBg || 'var(--bg-card)', borderRadius: 'inherit' }} 
+          />
+        </div>
+
+        {/* Custom Dashed Border Overlay */}
+        {borderStyle === 'dashed' && borderWidth !== undefined && borderWidth > 0 && (
+          <div 
+            className="absolute pointer-events-none" 
+            style={{ 
+              top: `-${borderWidth}px`, 
+              left: `-${borderWidth}px`, 
+              width: `calc(100% + ${borderWidth * 2}px)`, 
+              height: `calc(100% + ${borderWidth * 2}px)`,
+              zIndex: 40
+            }}
+          >
+            <svg width="100%" height="100%" className="overflow-visible" style={{ borderRadius: 'inherit' }}>
+              <rect
+                x={borderWidth / 2}
+                y={borderWidth / 2}
+                width={`calc(100% - ${borderWidth}px)`}
+                height={`calc(100% - ${borderWidth}px)`}
+                fill="none"
+                stroke={borderColor || 'currentColor'}
+                strokeWidth={borderWidth}
+                strokeDasharray={calculatedDashArray}
+                strokeLinecap={borderDashType === 'dot' ? 'round' : borderDashCap}
+                rx={borderRadius !== undefined ? Math.max(0, borderRadius - borderWidth / 2) : 0}
+                ry={borderRadius !== undefined ? Math.max(0, borderRadius - borderWidth / 2) : 0}
+              />
+            </svg>
+          </div>
+        )}
         
-        <AnimatePresence mode="popLayout" initial={false}>
+        <div className="flex-1 flex flex-col relative" style={{ borderRadius: 'inherit', overflow: (isTearing || isDownloading) ? 'visible' : (dayStyle === 'shadow' ? 'visible' : 'hidden') }}>
+          <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={currentDate.toISOString()}
             initial={isTearing ? { opacity: 0, y: -20, rotateX: -15, scale: 1.02 } : false}
@@ -1710,12 +1787,14 @@ export default function App() {
                   style={{ top: '-12px', right: '2px' }}
                 >
                   {calendarData.festivals && (
-                    <div className="bg-[var(--color-text)]/10 border border-[var(--color-text)]/20 text-[var(--color-text)] py-1 px-1 flex flex-col items-center gap-0.5">
-                      <div className="w-[1px] h-1.5 bg-current opacity-30 mb-0.5" />
+                    <div className={`bg-[var(--color-text)]/10 text-[var(--color-text)] py-1 px-1 flex flex-col items-center gap-0.5 ${
+                      theme === 'crimson' ? 'border border-[var(--color-text)]/20 rounded-full px-1.5' : 'border border-[var(--color-text)]/20'
+                    }`}>
+                      {theme !== 'crimson' && <div className="w-[1px] h-1.5 bg-current opacity-30 mb-0.5" />}
                       <div className="text-[9px] font-bold [writing-mode:vertical-rl] tracking-[1px] py-1">
                         {calendarData.festivals.split(' ')[0]}
                       </div>
-                      <div className="w-[1px] h-1.5 bg-current opacity-30 mt-0.5" />
+                      {theme !== 'crimson' && <div className="w-[1px] h-1.5 bg-current opacity-30 mt-0.5" />}
                     </div>
                   )}
                   {calendarData.solarTerm && (
@@ -2121,6 +2200,7 @@ export default function App() {
             </div>
         </motion.div>
       </AnimatePresence>
+        </div>
 
         {/* Shadow Overlay */}
         {isShadowOverlayEnabled && (
@@ -2909,13 +2989,29 @@ export default function App() {
                    {activeTab === 'border' && (
                      <div className="flex flex-col gap-4 pt-3 pb-4">
                         {/* 颜色选择 - 更紧凑的排列 */}
-                        <div className="flex flex-wrap gap-2 px-1 justify-center">
+                        <div className="flex flex-wrap gap-y-3 gap-x-2 px-1 items-center justify-between">
+                          <button
+                            onClick={() => {
+                              setIsCustomBorder(false);
+                              setBorderColor(primaryColor);
+                              localStorage.setItem('calendar-border-color', primaryColor);
+                              localStorage.setItem('calendar-border-custom', 'false');
+                            }}
+                            className={`px-3 h-6 rounded-full border text-[10px] leading-none whitespace-nowrap transition-all flex items-center justify-center ${
+                              !isCustomBorder 
+                                ? 'bg-rose-600 border-rose-600 text-white shadow-sm ring-2 ring-rose-600/20' 
+                                : `${isDarkBg ? 'bg-white/5 border-white/10 text-white/40' : 'bg-black/5 border-transparent text-black/40'} hover:bg-rose-600/10`
+                            }`}
+                          >
+                            同步主题
+                          </button>
+                          
                           {['#E5E7EB', '#9CA3AF', '#4B5563', '#1F2937', '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#FFFFFF'].map(c => (
                             <button
                               key={c}
-                              onClick={() => handleBorderColorChange(c)}
+                              onClick={() => handleBorderColorChange(c, true)}
                               className={`w-6 h-6 rounded-full border transition-all flex items-center justify-center ${
-                                borderColor === c && !isCustomBorder ? 'ring-2 ring-rose-600 border-rose-600' : 'hover:scale-110 border-black/5 opacity-80 hover:opacity-100'
+                                borderColor === c && isCustomBorder ? 'ring-2 ring-rose-600 border-rose-600' : 'hover:scale-110 border-black/5 opacity-80 hover:opacity-100'
                               }`}
                               style={{ backgroundColor: c }}
                             />
@@ -2989,6 +3085,63 @@ export default function App() {
                               ))}
                             </div>
                           </div>
+
+                          {borderStyle === 'dashed' && (
+                            <div className="pb-3 border-b border-black/5 mb-3 animate-in fade-in slide-in-from-top-1 duration-300">
+                                <div className="grid grid-cols-2 gap-4 mb-3">
+                                  <div className="flex flex-col gap-1.5">
+                                    <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">线段类型</span>
+                                    <div className="flex bg-black/5 p-0.5 rounded-lg">
+                                      {(['dash', 'dot'] as const).map(t => (
+                                        <button
+                                          key={t}
+                                          onClick={() => setBorderDashType(t)}
+                                          className={`flex-1 py-1 rounded-md text-[10px] font-medium transition-all ${
+                                            borderDashType === t ? 'bg-white shadow-sm text-rose-600' : 'opacity-40'
+                                          }`}
+                                        >
+                                          {t === 'dash' ? '线段' : '圆点'}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-col gap-1.5">
+                                    <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">线端样式</span>
+                                    <div className="flex bg-black/5 p-0.5 rounded-lg">
+                                      {(['butt', 'round'] as const).map(c => (
+                                        <button
+                                          key={c}
+                                          disabled={borderDashType === 'dot'}
+                                          onClick={() => setBorderDashCap(c)}
+                                          className={`flex-1 py-1 rounded-md text-[10px] font-medium transition-all ${
+                                            borderDashType === 'dot' ? 'opacity-20 cursor-not-allowed' :
+                                            borderDashCap === c ? 'bg-white shadow-sm text-rose-600' : 'opacity-40'
+                                          }`}
+                                        >
+                                          {c === 'butt' ? '直角' : '圆角'}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-col gap-1.5 col-span-2">
+                                    <span className="text-[10px] font-bold opacity-40 uppercase tracking-wider">dash-array 比例</span>
+                                    <div className="flex bg-black/5 p-0.5 rounded-lg">
+                                      {['1:1', '2:1', '3:1', '3:2'].map(r => (
+                                        <button
+                                          key={r}
+                                          onClick={() => setBorderDashRatio(r)}
+                                          className={`flex-1 py-1 rounded-md text-[8px] font-bold transition-all ${
+                                            borderDashRatio === r ? 'bg-white shadow-sm text-rose-600' : 'opacity-40'
+                                          }`}
+                                        >
+                                          {r}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                            </div>
+                          )}
 
                           {hasShadow && (
                             <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">

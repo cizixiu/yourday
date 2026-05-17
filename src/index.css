@@ -319,10 +319,13 @@ body {
   @apply flex items-center justify-center flex-1 my-0;
 }
 .theme-crimson .bottom-section {
-  @apply mt-2 md:mt-4 mb-2;
+  @apply mt-0 md:mt-4 mb-0 md:mb-2;
 }
 .theme-crimson .calendar-container {
-  @apply pb-10 md:pb-12;
+  @apply pb-0! md:pb-12;
+}
+.theme-crimson #footer-main {
+  @apply pt-1 md:pt-5;
 }
 .theme-crimson .quote-text {
   @apply font-black italic;
@@ -501,6 +504,7 @@ body {
 
 .theme-classic .sidebar-left,
 .theme-bold .sidebar-left,
+.theme-dark .sidebar-left,
 .theme-warm .sidebar-left,
 .theme-technical .sidebar-left,
 .theme-editorial .sidebar-left,
@@ -517,6 +521,7 @@ body {
 
 .theme-classic .sidebar-right,
 .theme-bold .sidebar-right,
+.theme-dark .sidebar-right,
 .theme-warm .sidebar-right,
 .theme-technical .sidebar-right,
 .theme-editorial .sidebar-right,
