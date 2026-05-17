@@ -95,10 +95,6 @@ export default function App() {
   const [showSuitable, setShowSuitable] = useState(true);
   const [showAvoid, setShowAvoid] = useState(true);
   const [tearAnimation, setTearAnimation] = useState<TearAnimationType>('classic');
-  useEffect(() => {
-    localStorage.setItem('calendar-quote-source', quoteSource);
-    localStorage.setItem('calendar-hitokoto-category', hitokotoCategory);
-  }, [quoteSource, hitokotoCategory]);
 
   const [isTearing, setIsTearing] = useState(false);
 
@@ -332,6 +328,11 @@ export default function App() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('calendar-quote-source', quoteSource);
+    localStorage.setItem('calendar-hitokoto-category', hitokotoCategory);
+  }, [quoteSource, hitokotoCategory]);
 
   const handleShadowOverlayToggle = (val: boolean) => {
     setIsShadowOverlayEnabled(val);
