@@ -889,6 +889,14 @@ export default function App() {
     const newBg = bgs[Math.floor(Math.random() * bgs.length)];
     setBgId(newBg);
 
+    // 8. Card Specifics (Texture and Bg)
+    const textureList = ['none', 'grain', 'linen', 'recycled', 'handmade', 'fiber', 'watercolor', 'xuan'];
+    setCardTexture(textureList[Math.floor(Math.random() * textureList.length)]);
+    
+    const randomCardBg = cardBgs[Math.floor(Math.random() * cardBgs.length)].color;
+    setCardBg(randomCardBg);
+    setIsCustomCardBg(false);
+
     // Reset custom colors to let scheme take over
     setCustomPrimaryColor('');
     setCustomAppBgColor('');

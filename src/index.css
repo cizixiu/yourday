@@ -46,7 +46,7 @@
   --font-main: "Noto Serif SC", serif;
 }
 .theme-neo-traditional.calendar-container {
-  @apply px-4 py-4 md:px-8 md:py-6 border-transparent;
+  @apply border-transparent p-0!;
 }
 
 @theme {
@@ -344,7 +344,7 @@ body {
 
 /* Capsule Mode (Small Container) - Automatic adjustments */
 @container (max-width: 380px) {
-  .calendar-container {
+  .calendar-container:not(.theme-neo-traditional):not(.theme-crimson) {
     padding-left: 1.25rem !important;
     padding-right: 1.25rem !important;
     padding-top: 1rem !important;
