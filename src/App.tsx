@@ -1981,9 +1981,9 @@ export default function App() {
         )}
 
         {theme !== 'neo-traditional' && (
-          <footer className="mt-auto pt-3 md:pt-5 flex justify-between items-center border-t border-current/40 relative capsule-compact-header" id="footer-main">
+          <footer className="mt-auto pt-3 md:pt-5 flex justify-between items-end border-t border-current/40 relative capsule-compact-header" id="footer-main">
           <div 
-            className="text-xs font-black tracking-[3px] uppercase capsule-text-xs" 
+            className="text-xs font-black tracking-[3px] uppercase capsule-text-xs pb-[2px]" 
             id="brand"
             style={theme === 'vanguard' ? { color: 'var(--color-text)', opacity: 1 } : {}}
           >
